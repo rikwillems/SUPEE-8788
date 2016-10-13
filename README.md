@@ -1,4 +1,4 @@
-# SUPEE-7405
+# SUPEE-8788
 
 This script determines the Magento version and downloads the right patch file. For ease of use it also disables and clears compilation. After this take the normal steps for applying Magento patches.
 
