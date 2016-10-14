@@ -2,9 +2,7 @@
 
 This script determines the Magento version and downloads the right patch file. For ease of use it also disables and clears compilation. After this take the normal steps for applying Magento patches.
 
-#COMMUNITY EDITION 1.9.3 AND SUPEE-8788 
-
-Community Edition 1.9.3 delivers over 120 quality improvements, as well as support for PHP 5.6. It also resolves critical security issues, including:
+# Issues 
 
 - Remote code execution vulnerabilities with certain payment methods
 - Possibility of SQL injections due to Zend Framework library vulnerabilities
