@@ -157,11 +157,11 @@ echo -e "$APPLIED_REVERTED_PATCH_INFO\n$PATCH_APPLY_REVERT_RESULT\n\n" >> "$APPL
 exit 0
 
 
-SUPEE-8788 | 1.7.0.2 | v1 | 1e18988326b46e7b227e1113f62de7b7047b169c | Thu Sep 8 14:32:57 2016 +0300 | a4eeba90a6..1e18988326
+SUPEE-8788 | CE_1.6.2.0 | v2 | 86f9a5b0a9cd7c6d49ad8dbbfe0ede7b9d80f06b | Fri Oct 14 19:28:35 2016 +0300 | dbac0de2e74b6a3cc6b1766c11be45d3f3b41033
 
 __PATCHFILE_FOLLOWS__
 diff --git app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php
-index effc12e..19f15f4 100644
+index ba20f4d..8150064 100644
 --- app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php
 +++ app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php
 @@ -34,6 +34,12 @@
@@ -203,8 +203,8 @@ index effc12e..19f15f4 100644
 +                'accept' => $browseConfig->getMimeTypesByExtensions('gif, png, jpeg, jpg')
              ));
  
-         Mage::dispatchEvent('catalog_product_gallery_prepare_layout', array('block' => $this));
-@@ -65,7 +71,7 @@ class Mage_Adminhtml_Block_Catalog_Product_Helper_Form_Gallery_Content extends M
+         return parent::_prepareLayout();
+@@ -63,7 +69,7 @@ class Mage_Adminhtml_Block_Catalog_Product_Helper_Form_Gallery_Content extends M
      /**
       * Retrive uploader block
       *
@@ -214,7 +214,7 @@ index effc12e..19f15f4 100644
      public function getUploader()
      {
 diff --git app/code/core/Mage/Adminhtml/Block/Cms/Wysiwyg/Images/Content/Uploader.php app/code/core/Mage/Adminhtml/Block/Cms/Wysiwyg/Images/Content/Uploader.php
-index b9b7376..82a33c0 100644
+index e8b3334..45bd063 100644
 --- app/code/core/Mage/Adminhtml/Block/Cms/Wysiwyg/Images/Content/Uploader.php
 +++ app/code/core/Mage/Adminhtml/Block/Cms/Wysiwyg/Images/Content/Uploader.php
 @@ -31,29 +31,24 @@
@@ -259,11 +259,24 @@ index b9b7376..82a33c0 100644
              ));
      }
  
+diff --git app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php
+index b1a82c2..e8d80bd 100644
+--- app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php
++++ app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php
+@@ -444,7 +444,7 @@ class Mage_Adminhtml_Block_Dashboard_Graph extends Mage_Adminhtml_Block_Dashboar
+             }
+             return self::API_URL . '?' . implode('&', $p);
+         } else {
+-            $gaData = urlencode(base64_encode(serialize($params)));
++            $gaData = urlencode(base64_encode(json_encode($params)));
+             $gaHash = Mage::helper('adminhtml/dashboard_data')->getChartDataHash($gaData);
+             $params = array('ga' => $gaData, 'h' => $gaHash);
+             return $this->getUrl('*/*/tunnel', array('_query' => $params));
 diff --git app/code/core/Mage/Adminhtml/Block/Media/Uploader.php app/code/core/Mage/Adminhtml/Block/Media/Uploader.php
-index 033ece1..1f1d0fc 100644
+index 1eff336..99cff39 100644
 --- app/code/core/Mage/Adminhtml/Block/Media/Uploader.php
 +++ app/code/core/Mage/Adminhtml/Block/Media/Uploader.php
-@@ -31,189 +31,20 @@
+@@ -31,188 +31,20 @@
   * @package    Mage_Adminhtml
   * @author      Magento Core Team <core@magentocommerce.com>
   */
@@ -437,12 +450,11 @@ index 033ece1..1f1d0fc 100644
 +class Mage_Adminhtml_Block_Media_Uploader extends Mage_Uploader_Block_Multiple
 +{
      /**
--     * Retrieve full uploader SWF's file URL
+-     * Retrive full uploader SWF's file URL
 -     * Implemented to solve problem with cross domain SWFs
 -     * Now uploader can be only in the same URL where backend located
 -     *
--     * @param string $url url to uploader in current theme
--     *
+-     * @param string url to uploader in current theme
 -     * @return string full URL
 +     * Constructor for uploader block
       */
@@ -457,15 +469,33 @@ index 033ece1..1f1d0fc 100644
 -        if (empty($url) || !$design->validateFile($url, array('_type' => 'skin', '_theme' => $theme))) {
 -            $theme = $design->getDefaultTheme();
 -        }
--        return Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB) . 'skin/' .
+-        return Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) .
 -            $design->getArea() . '/' . $design->getPackageName() . '/' . $theme . '/' . $url;
 +        parent::__construct();
 +        $this->getUploaderConfig()->setTarget(Mage::getModel('adminhtml/url')->addSessionParam()->getUrl('*/*/upload'));
 +        $this->getUploaderConfig()->setFileParameterName('file');
      }
  }
+diff --git app/code/core/Mage/Adminhtml/Block/System/Email/Template/Preview.php app/code/core/Mage/Adminhtml/Block/System/Email/Template/Preview.php
+index 7048b3d..1ffcbb4 100644
+--- app/code/core/Mage/Adminhtml/Block/System/Email/Template/Preview.php
++++ app/code/core/Mage/Adminhtml/Block/System/Email/Template/Preview.php
+@@ -44,8 +44,12 @@ class Mage_Adminhtml_Block_System_Email_Template_Preview extends Mage_Adminhtml_
+             $template->setTemplateText($this->getRequest()->getParam('text'));
+             $template->setTemplateStyles($this->getRequest()->getParam('styles'));
+         }
++
++        /* @var $filter Mage_Core_Model_Input_Filter_MaliciousCode */
++        $filter = Mage::getSingleton('core/input_filter_maliciousCode');
++
+         $template->setTemplateText(
+-            $this->escapeHtml($template->getTemplateText())
++            $filter->filter($template->getTemplateText())
+         );
+ 
+         Varien_Profiler::start("email_template_proccessing");
 diff --git app/code/core/Mage/Adminhtml/Block/Urlrewrite/Category/Tree.php app/code/core/Mage/Adminhtml/Block/Urlrewrite/Category/Tree.php
-index 8483bf6..5354be9 100644
+index 519d59e..9ffd568 100644
 --- app/code/core/Mage/Adminhtml/Block/Urlrewrite/Category/Tree.php
 +++ app/code/core/Mage/Adminhtml/Block/Urlrewrite/Category/Tree.php
 @@ -119,7 +119,7 @@ class Mage_Adminhtml_Block_Urlrewrite_Category_Tree extends Mage_Adminhtml_Block
@@ -478,7 +508,7 @@ index 8483bf6..5354be9 100644
              'product_count'  => (int)$node->getProductCount()
          );
 diff --git app/code/core/Mage/Adminhtml/Model/System/Config/Backend/Serialized.php app/code/core/Mage/Adminhtml/Model/System/Config/Backend/Serialized.php
-index 3355f17..8465a50 100644
+index 26c6085..f4f413b 100644
 --- app/code/core/Mage/Adminhtml/Model/System/Config/Backend/Serialized.php
 +++ app/code/core/Mage/Adminhtml/Model/System/Config/Backend/Serialized.php
 @@ -29,8 +29,17 @@ class Mage_Adminhtml_Model_System_Config_Backend_Serialized extends Mage_Core_Mo
@@ -502,23 +532,26 @@ index 3355f17..8465a50 100644
      }
  
 diff --git app/code/core/Mage/Adminhtml/controllers/DashboardController.php app/code/core/Mage/Adminhtml/controllers/DashboardController.php
-index 8afc56e..bcd2bcf 100644
+index 5edfd5d..14ff36e 100644
 --- app/code/core/Mage/Adminhtml/controllers/DashboardController.php
 +++ app/code/core/Mage/Adminhtml/controllers/DashboardController.php
-@@ -91,7 +91,7 @@ class Mage_Adminhtml_DashboardController extends Mage_Adminhtml_Controller_Actio
+@@ -76,8 +76,9 @@ class Mage_Adminhtml_DashboardController extends Mage_Adminhtml_Controller_Actio
          $gaHash = $this->getRequest()->getParam('h');
          if ($gaData && $gaHash) {
              $newHash = Mage::helper('adminhtml/dashboard_data')->getChartDataHash($gaData);
 -            if ($newHash == $gaHash) {
+-                if ($params = unserialize(base64_decode(urldecode($gaData)))) {
 +            if (hash_equals($newHash, $gaHash)) {
-                 if ($params = unserialize(base64_decode(urldecode($gaData)))) {
++                $params = json_decode(base64_decode(urldecode($gaData)), true);
++                if ($params) {
                      $response = $httpClient->setUri(Mage_Adminhtml_Block_Dashboard_Graph::API_URL)
                              ->setParameterGet($params)
+                             ->setConfig(array('timeout' => 5))
 diff --git app/code/core/Mage/Adminhtml/controllers/IndexController.php app/code/core/Mage/Adminhtml/controllers/IndexController.php
-index 724dd73..4565d93 100644
+index 69a55b9..23274ea 100644
 --- app/code/core/Mage/Adminhtml/controllers/IndexController.php
 +++ app/code/core/Mage/Adminhtml/controllers/IndexController.php
-@@ -392,7 +392,7 @@ class Mage_Adminhtml_IndexController extends Mage_Adminhtml_Controller_Action
+@@ -401,7 +401,7 @@ class Mage_Adminhtml_IndexController extends Mage_Adminhtml_Controller_Action
          }
  
          $userToken = $user->getRpToken();
@@ -528,7 +561,7 @@ index 724dd73..4565d93 100644
          }
      }
 diff --git app/code/core/Mage/Adminhtml/controllers/Media/UploaderController.php app/code/core/Mage/Adminhtml/controllers/Media/UploaderController.php
-index 940e97c..6dd6380 100644
+index bdc4394..9f61f96 100644
 --- app/code/core/Mage/Adminhtml/controllers/Media/UploaderController.php
 +++ app/code/core/Mage/Adminhtml/controllers/Media/UploaderController.php
 @@ -43,7 +43,7 @@ class Mage_Adminhtml_Media_UploaderController extends Mage_Adminhtml_Controller_
@@ -541,7 +574,7 @@ index 940e97c..6dd6380 100644
          $this->renderLayout();
      }
 diff --git app/code/core/Mage/Catalog/Block/Product/Abstract.php app/code/core/Mage/Catalog/Block/Product/Abstract.php
-index a4728a5..7275a1e 100644
+index e573a51..6edb9d7 100644
 --- app/code/core/Mage/Catalog/Block/Product/Abstract.php
 +++ app/code/core/Mage/Catalog/Block/Product/Abstract.php
 @@ -34,6 +34,11 @@
@@ -674,7 +707,7 @@ index a4728a5..7275a1e 100644
      protected function _getPriceBlockTemplate($productTypeId)
      {
          if (isset($this->_priceBlockTypes[$productTypeId])) {
-@@ -304,6 +356,11 @@ abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Templ
+@@ -303,6 +355,11 @@ abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Templ
          return $this->getData('product');
      }
  
@@ -686,7 +719,7 @@ index a4728a5..7275a1e 100644
      public function getTierPriceTemplate()
      {
          if (!$this->hasData('tier_price_template')) {
-@@ -419,13 +476,13 @@ abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Templ
+@@ -410,13 +467,13 @@ abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Templ
       *
       * @return string
       */
@@ -703,10 +736,10 @@ index a4728a5..7275a1e 100644
              $label = $product->getName();
          }
 diff --git app/code/core/Mage/Catalog/Block/Product/View.php app/code/core/Mage/Catalog/Block/Product/View.php
-index f641f24..bc81fd7 100644
+index b83bece..c853d6b 100644
 --- app/code/core/Mage/Catalog/Block/Product/View.php
 +++ app/code/core/Mage/Catalog/Block/Product/View.php
-@@ -61,7 +61,7 @@ class Mage_Catalog_Block_Product_View extends Mage_Catalog_Block_Product_Abstrac
+@@ -60,7 +60,7 @@ class Mage_Catalog_Block_Product_View extends Mage_Catalog_Block_Product_Abstrac
              $currentCategory = Mage::registry('current_category');
              if ($keyword) {
                  $headBlock->setKeywords($keyword);
@@ -715,7 +748,7 @@ index f641f24..bc81fd7 100644
                  $headBlock->setKeywords($product->getName());
              }
              $description = $product->getMetaDescription();
-@@ -71,7 +71,7 @@ class Mage_Catalog_Block_Product_View extends Mage_Catalog_Block_Product_Abstrac
+@@ -70,7 +70,7 @@ class Mage_Catalog_Block_Product_View extends Mage_Catalog_Block_Product_Abstrac
                  $headBlock->setDescription(Mage::helper('core/string')->substr($product->getDescription(), 0, 255));
              }
              if ($this->helper('catalog/product')->canUseCanonicalTag()) {
@@ -724,7 +757,7 @@ index f641f24..bc81fd7 100644
                  $headBlock->addLinkRel('canonical', $product->getUrlModel()->getUrl($product, $params));
              }
          }
-@@ -117,7 +117,7 @@ class Mage_Catalog_Block_Product_View extends Mage_Catalog_Block_Product_Abstrac
+@@ -116,7 +116,7 @@ class Mage_Catalog_Block_Product_View extends Mage_Catalog_Block_Product_Abstrac
              return $this->getCustomAddToCartUrl();
          }
  
@@ -733,7 +766,7 @@ index f641f24..bc81fd7 100644
              $additional['wishlist_next'] = 1;
          }
  
-@@ -191,9 +191,9 @@ class Mage_Catalog_Block_Product_View extends Mage_Catalog_Block_Product_Abstrac
+@@ -178,9 +178,9 @@ class Mage_Catalog_Block_Product_View extends Mage_Catalog_Block_Product_Abstrac
          );
  
          $responseObject = new Varien_Object();
@@ -746,7 +779,7 @@ index f641f24..bc81fd7 100644
              }
          }
 diff --git app/code/core/Mage/Catalog/Helper/Image.php app/code/core/Mage/Catalog/Helper/Image.php
-index cafed95..02afd32 100644
+index f7ec369..eef9efc 100644
 --- app/code/core/Mage/Catalog/Helper/Image.php
 +++ app/code/core/Mage/Catalog/Helper/Image.php
 @@ -31,6 +31,8 @@
@@ -755,11 +788,11 @@ index cafed95..02afd32 100644
  {
 +    const XML_NODE_PRODUCT_MAX_DIMENSION = 'catalog/product_image/max_dimension';
 +
-     /**
-      * Current model
-      *
-@@ -631,10 +633,16 @@ class Mage_Catalog_Helper_Image extends Mage_Core_Helper_Abstract
-      * @throws Mage_Core_Exception
+     protected $_model;
+     protected $_scheduleResize = false;
+     protected $_scheduleRotate = false;
+@@ -492,10 +494,18 @@ class Mage_Catalog_Helper_Image extends Mage_Core_Helper_Abstract
+      * @throw Mage_Core_Exception
       */
      public function validateUploadFile($filePath) {
 -        if (!getimagesize($filePath)) {
@@ -768,16 +801,19 @@ index cafed95..02afd32 100644
 +        if (!$imageInfo) {
              Mage::throwException($this->__('Disallowed file type.'));
          }
- 
+-        return true;
++
 +        if ($imageInfo[0] > $maxDimension || $imageInfo[1] > $maxDimension) {
 +            Mage::throwException($this->__('Disalollowed file format.'));
 +        }
 +
-         $_processor = new Varien_Image($filePath);
-         return $_processor->getMimeType() !== null;
++        $_processor = new Varien_Image($filePath);
++        return $_processor->getMimeType() !== null;
      }
+ 
+ }
 diff --git app/code/core/Mage/Catalog/Helper/Product/Compare.php app/code/core/Mage/Catalog/Helper/Product/Compare.php
-index d38d2ba..5860121 100644
+index 31e9a74..3f76772 100644
 --- app/code/core/Mage/Catalog/Helper/Product/Compare.php
 +++ app/code/core/Mage/Catalog/Helper/Product/Compare.php
 @@ -79,17 +79,17 @@ class Mage_Catalog_Helper_Product_Compare extends Mage_Core_Helper_Url
@@ -850,24 +886,11 @@ index d38d2ba..5860121 100644
              Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED => $this->getEncodedUrl()
          );
          return $this->_getUrl('catalog/product_compare/remove', $params);
-diff --git app/code/core/Mage/Catalog/Model/Resource/Layer/Filter/Price.php app/code/core/Mage/Catalog/Model/Resource/Layer/Filter/Price.php
-index 544c549..dca2307 100755
---- app/code/core/Mage/Catalog/Model/Resource/Layer/Filter/Price.php
-+++ app/code/core/Mage/Catalog/Model/Resource/Layer/Filter/Price.php
-@@ -269,7 +269,7 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
-             'range' => $rangeExpr,
-             'count' => $countExpr
-         ));
--        $select->group($rangeExpr)->order("$rangeExpr ASC");
-+        $select->group('range')->order('range ' . Varien_Data_Collection::SORT_ORDER_ASC);
- 
-         return $this->_getReadAdapter()->fetchPairs($select);
-     }
 diff --git app/code/core/Mage/Catalog/controllers/Product/CompareController.php app/code/core/Mage/Catalog/controllers/Product/CompareController.php
-index 5855daa..32f9b4b 100644
+index 78b9e73..cfad47c 100644
 --- app/code/core/Mage/Catalog/controllers/Product/CompareController.php
 +++ app/code/core/Mage/Catalog/controllers/Product/CompareController.php
-@@ -74,6 +74,11 @@ class Mage_Catalog_Product_CompareController extends Mage_Core_Controller_Front_
+@@ -74,6 +74,10 @@ class Mage_Catalog_Product_CompareController extends Mage_Core_Controller_Front_
       */
      public function addAction()
      {
@@ -875,15 +898,14 @@ index 5855daa..32f9b4b 100644
 +            $this->_redirectReferer();
 +            return;
 +        }
-+
-         $productId = (int) $this->getRequest()->getParam('product');
-         if ($productId
-             && (Mage::getSingleton('log/visitor')->getId() || Mage::getSingleton('customer/session')->isLoggedIn())
+         if ($productId = (int) $this->getRequest()->getParam('product')) {
+             $product = Mage::getModel('catalog/product')
+                 ->setStoreId(Mage::app()->getStore()->getId())
 diff --git app/code/core/Mage/Catalog/etc/config.xml app/code/core/Mage/Catalog/etc/config.xml
-index 9f49002..b7728a8 100644
+index b7a3656..5665085 100644
 --- app/code/core/Mage/Catalog/etc/config.xml
 +++ app/code/core/Mage/Catalog/etc/config.xml
-@@ -771,6 +771,9 @@
+@@ -750,6 +750,9 @@
              <product>
                  <default_tax_group>2</default_tax_group>
              </product>
@@ -894,10 +916,10 @@ index 9f49002..b7728a8 100644
                  <product_url_suffix>.html</product_url_suffix>
                  <category_url_suffix>.html</category_url_suffix>
 diff --git app/code/core/Mage/Catalog/etc/system.xml app/code/core/Mage/Catalog/etc/system.xml
-index 40268ec..7324482 100644
+index 4cbacb4..d1e1302 100644
 --- app/code/core/Mage/Catalog/etc/system.xml
 +++ app/code/core/Mage/Catalog/etc/system.xml
-@@ -185,6 +185,24 @@
+@@ -181,6 +181,24 @@
                          </lines_perpage>
                      </fields>
                  </sitemap>
@@ -923,7 +945,7 @@ index 40268ec..7324482 100644
                      <label>Product Image Placeholders</label>
                      <clone_fields>1</clone_fields>
 diff --git app/code/core/Mage/Centinel/Model/Api.php app/code/core/Mage/Centinel/Model/Api.php
-index 13b1b36..9ef06d9 100644
+index 5126701..4ac0e86 100644
 --- app/code/core/Mage/Centinel/Model/Api.php
 +++ app/code/core/Mage/Centinel/Model/Api.php
 @@ -25,11 +25,6 @@
@@ -1056,7 +1078,7 @@ index 0000000..e91a482
 +    }
 +}
 diff --git app/code/core/Mage/Checkout/Helper/Cart.php app/code/core/Mage/Checkout/Helper/Cart.php
-index 33ba781..38c333d 100644
+index 2331db7..2ba1429 100644
 --- app/code/core/Mage/Checkout/Helper/Cart.php
 +++ app/code/core/Mage/Checkout/Helper/Cart.php
 @@ -31,6 +31,9 @@
@@ -1119,7 +1141,7 @@ index 33ba781..38c333d 100644
          );
          return $this->_getUrl('checkout/cart/delete', $params);
 diff --git app/code/core/Mage/Checkout/controllers/CartController.php app/code/core/Mage/Checkout/controllers/CartController.php
-index 4e41521..db69872 100644
+index 3233084..16f1593 100644
 --- app/code/core/Mage/Checkout/controllers/CartController.php
 +++ app/code/core/Mage/Checkout/controllers/CartController.php
 @@ -70,6 +70,7 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
@@ -1130,7 +1152,7 @@ index 4e41521..db69872 100644
       */
      protected function _goBack()
      {
-@@ -166,9 +167,15 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
+@@ -156,9 +157,15 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
  
      /**
       * Add product to shopping cart action
@@ -1146,16 +1168,16 @@ index 4e41521..db69872 100644
          $cart   = $this->_getCart();
          $params = $this->getRequest()->getParams();
          try {
-@@ -207,7 +214,7 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
+@@ -197,7 +204,7 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
              );
  
              if (!$this->_getSession()->getNoCartRedirect(true)) {
 -                if (!$cart->getQuote()->getHasError()){
 +                if (!$cart->getQuote()->getHasError()) {
-                     $message = $this->__('%s was added to your shopping cart.', Mage::helper('core')->escapeHtml($product->getName()));
+                     $message = $this->__('%s was added to your shopping cart.', Mage::helper('core')->htmlEscape($product->getName()));
                      $this->_getSession()->addSuccess($message);
                  }
-@@ -236,34 +243,41 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
+@@ -226,34 +233,41 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
          }
      }
  
@@ -1219,7 +1241,7 @@ index 4e41521..db69872 100644
          $this->_goBack();
      }
  
-@@ -347,8 +361,8 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
+@@ -337,8 +351,8 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
                  array('item' => $item, 'request' => $this->getRequest(), 'response' => $this->getResponse())
              );
              if (!$this->_getSession()->getNoCartRedirect(true)) {
@@ -1230,7 +1252,7 @@ index 4e41521..db69872 100644
                      $this->_getSession()->addSuccess($message);
                  }
                  $this->_goBack();
-@@ -382,6 +396,11 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
+@@ -372,6 +386,10 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
       */
      public function updatePostAction()
      {
@@ -1238,11 +1260,10 @@ index 4e41521..db69872 100644
 +            $this->_redirect('*/*/');
 +            return;
 +        }
-+
-         $updateAction = (string)$this->getRequest()->getParam('update_cart_action');
- 
-         switch ($updateAction) {
-@@ -492,6 +511,11 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
+         try {
+             $cartData = $this->getRequest()->getParam('cart');
+             if (is_array($cartData)) {
+@@ -447,6 +465,11 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
          $this->_goBack();
      }
  
@@ -1255,10 +1276,10 @@ index 4e41521..db69872 100644
      {
          $code = (string) $this->getRequest()->getParam('estimate_method');
 diff --git app/code/core/Mage/Checkout/controllers/OnepageController.php app/code/core/Mage/Checkout/controllers/OnepageController.php
-index e62cb91..55d0833 100644
+index d68b639..7c0dda9 100644
 --- app/code/core/Mage/Checkout/controllers/OnepageController.php
 +++ app/code/core/Mage/Checkout/controllers/OnepageController.php
-@@ -24,16 +24,27 @@
+@@ -24,9 +24,16 @@
   * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
   */
  
@@ -1276,28 +1297,7 @@ index e62cb91..55d0833 100644
      protected $_sectionUpdateFunctions = array(
          'payment-method'  => '_getPaymentMethodsHtml',
          'shipping-method' => '_getShippingMethodsHtml',
-         'review'          => '_getReviewHtml',
-     );
- 
--    /** @var Mage_Sales_Model_Order */
-+    /**
-+     * Order instance
-+     *
-+     * @var Mage_Sales_Model_Order
-+     */
-     protected $_order;
- 
-     /**
-@@ -50,7 +61,7 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-             $checkoutSessionQuote->removeAllAddresses();
-         }
- 
--        if(!$this->_canShowForUnregisteredUsers()){
-+        if (!$this->_canShowForUnregisteredUsers()) {
-             $this->norouteAction();
-             $this->setFlag('',self::FLAG_NO_DISPATCH,true);
-             return;
-@@ -59,6 +70,11 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
+@@ -50,6 +57,11 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
          return $this;
      }
  
@@ -1309,7 +1309,7 @@ index e62cb91..55d0833 100644
      protected function _ajaxRedirectResponse()
      {
          $this->getResponse()
-@@ -123,6 +139,12 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
+@@ -114,6 +126,12 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
          return $output;
      }
  
@@ -1322,7 +1322,7 @@ index e62cb91..55d0833 100644
      protected function _getAdditionalHtml()
      {
          $layout = $this->getLayout();
-@@ -180,7 +202,7 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
+@@ -167,7 +185,7 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
              return;
          }
          Mage::getSingleton('checkout/session')->setCartWasUpdated(false);
@@ -1331,7 +1331,7 @@ index e62cb91..55d0833 100644
          $this->getOnepage()->initCheckout();
          $this->loadLayout();
          $this->_initLayoutMessages('customer/session');
-@@ -200,6 +222,9 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
+@@ -187,6 +205,9 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
          $this->renderLayout();
      }
  
@@ -1341,7 +1341,7 @@ index e62cb91..55d0833 100644
      public function shippingMethodAction()
      {
          if ($this->_expireAjax()) {
-@@ -209,6 +234,9 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
+@@ -196,6 +217,9 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
          $this->renderLayout();
      }
  
@@ -1351,7 +1351,7 @@ index e62cb91..55d0833 100644
      public function reviewAction()
      {
          if ($this->_expireAjax()) {
-@@ -244,6 +272,9 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
+@@ -231,6 +255,9 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
          $this->renderLayout();
      }
  
@@ -1361,7 +1361,7 @@ index e62cb91..55d0833 100644
      public function failureAction()
      {
          $lastQuoteId = $this->getOnepage()->getCheckout()->getLastQuoteId();
-@@ -259,6 +290,9 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
+@@ -246,6 +273,9 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
      }
  
  
@@ -1371,7 +1371,7 @@ index e62cb91..55d0833 100644
      public function getAdditionalAction()
      {
          $this->getResponse()->setBody($this->_getAdditionalHtml());
-@@ -383,10 +417,10 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
+@@ -370,10 +400,10 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
              /*
              $result will have erro data if shipping method is empty
              */
@@ -1385,7 +1385,7 @@ index e62cb91..55d0833 100644
                  $this->getOnepage()->getQuote()->collectTotals();
                  $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($result));
  
-@@ -452,7 +486,8 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
+@@ -442,7 +472,8 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
      /**
       * Get Order by quoteId
       *
@@ -1395,7 +1395,7 @@ index e62cb91..55d0833 100644
       */
      protected function _getOrder()
      {
-@@ -489,15 +524,21 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
+@@ -479,15 +510,21 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
       */
      public function saveOrderAction()
      {
@@ -1419,7 +1419,7 @@ index e62cb91..55d0833 100644
                      $result['success'] = false;
                      $result['error'] = true;
                      $result['error_messages'] = $this->__('Please agree to all the terms and conditions before placing the order.');
-@@ -515,7 +556,7 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
+@@ -520,7 +557,7 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
              $result['error']   = false;
          } catch (Mage_Payment_Model_Info_Exception $e) {
              $message = $e->getMessage();
@@ -1428,7 +1428,7 @@ index e62cb91..55d0833 100644
                  $result['error_messages'] = $message;
              }
              $result['goto_section'] = 'payment';
-@@ -530,12 +571,13 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
+@@ -535,12 +572,13 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
              $result['error'] = true;
              $result['error_messages'] = $e->getMessage();
  
@@ -1446,7 +1446,7 @@ index e62cb91..55d0833 100644
                      $updateSectionFunction = $this->_sectionUpdateFunctions[$updateSection];
                      $result['update_section'] = array(
 diff --git app/code/core/Mage/Core/Block/Abstract.php app/code/core/Mage/Core/Block/Abstract.php
-index 1e1659d..a58fc26 100644
+index 7ece433..7d9d714 100644
 --- app/code/core/Mage/Core/Block/Abstract.php
 +++ app/code/core/Mage/Core/Block/Abstract.php
 @@ -38,6 +38,10 @@
@@ -1476,7 +1476,7 @@ index 1e1659d..a58fc26 100644
          /**
           * don't prevent recalculation by saving generated cache key
 diff --git app/code/core/Mage/Core/Helper/Url.php app/code/core/Mage/Core/Helper/Url.php
-index 2fd8608..a899975 100644
+index 811b5c4..e55ee09 100644
 --- app/code/core/Mage/Core/Helper/Url.php
 +++ app/code/core/Mage/Core/Helper/Url.php
 @@ -51,7 +51,7 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
@@ -1551,7 +1551,7 @@ index 2fd8608..a899975 100644
 +    }
  }
 diff --git app/code/core/Mage/Core/Model/Encryption.php app/code/core/Mage/Core/Model/Encryption.php
-index 4de64a2..cec49c8 100644
+index 9fffd83..4763516 100644
 --- app/code/core/Mage/Core/Model/Encryption.php
 +++ app/code/core/Mage/Core/Model/Encryption.php
 @@ -98,9 +98,9 @@ class Mage_Core_Model_Encryption
@@ -1567,7 +1567,7 @@ index 4de64a2..cec49c8 100644
          Mage::throwException('Invalid hash.');
      }
 diff --git app/code/core/Mage/Core/Model/Input/Filter/MaliciousCode.php app/code/core/Mage/Core/Model/Input/Filter/MaliciousCode.php
-index 55da2fb..0d4128e 100644
+index a559a6d..2566189 100644
 --- app/code/core/Mage/Core/Model/Input/Filter/MaliciousCode.php
 +++ app/code/core/Mage/Core/Model/Input/Filter/MaliciousCode.php
 @@ -65,7 +65,13 @@ class Mage_Core_Model_Input_Filter_MaliciousCode implements Zend_Filter_Interfac
@@ -1586,31 +1586,10 @@ index 55da2fb..0d4128e 100644
  
      /**
 diff --git app/code/core/Mage/Core/Model/Url.php app/code/core/Mage/Core/Model/Url.php
-index c87bf48..28086af 100644
+index 63bd855..ccf8d0b 100644
 --- app/code/core/Mage/Core/Model/Url.php
 +++ app/code/core/Mage/Core/Model/Url.php
-@@ -89,14 +89,31 @@ class Mage_Core_Model_Url extends Varien_Object
-     const DEFAULT_ACTION_NAME       = 'index';
- 
-     /**
--     * Configuration paths
-+     * XML base url path unsecure
-      */
-     const XML_PATH_UNSECURE_URL     = 'web/unsecure/base_url';
-+
-+    /**
-+     * XML base url path secure
-+     */
-     const XML_PATH_SECURE_URL       = 'web/secure/base_url';
-+
-+    /**
-+     * XML path for using in adminhtml
-+     */
-     const XML_PATH_SECURE_IN_ADMIN  = 'default/web/secure/use_in_adminhtml';
-+
-+    /**
-+     * XML path for using in frontend
-+     */
+@@ -97,6 +97,11 @@ class Mage_Core_Model_Url extends Varien_Object
      const XML_PATH_SECURE_IN_FRONT  = 'web/secure/use_in_frontend';
  
      /**
@@ -1622,7 +1601,7 @@ index c87bf48..28086af 100644
       * Configuration data cache
       *
       * @var array
-@@ -483,7 +500,7 @@ class Mage_Core_Model_Url extends Varien_Object
+@@ -483,7 +488,7 @@ class Mage_Core_Model_Url extends Varien_Object
              }
              $routePath = $this->getActionPath();
              if ($this->getRouteParams()) {
@@ -1631,7 +1610,7 @@ index c87bf48..28086af 100644
                      if (is_null($value) || false === $value || '' === $value || !is_scalar($value)) {
                          continue;
                      }
-@@ -939,8 +956,8 @@ class Mage_Core_Model_Url extends Varien_Object
+@@ -939,8 +944,8 @@ class Mage_Core_Model_Url extends Varien_Object
      /**
       * Build url by requested path and parameters
       *
@@ -1642,15 +1621,15 @@ index c87bf48..28086af 100644
       * @return  string
       */
      public function getUrl($routePath = null, $routeParams = null)
-@@ -974,6 +991,7 @@ class Mage_Core_Model_Url extends Varien_Object
-             $noSid = (bool)$routeParams['_nosid'];
+@@ -974,6 +979,7 @@ class Mage_Core_Model_Url extends Varien_Object
+             $noSid = (bool) $routeParams['_nosid'];
              unset($routeParams['_nosid']);
          }
 +
          $url = $this->getRouteUrl($routePath, $routeParams);
          /**
           * Apply query params, need call after getRouteUrl for rewrite _current values
-@@ -1007,6 +1025,18 @@ class Mage_Core_Model_Url extends Varien_Object
+@@ -1007,6 +1013,18 @@ class Mage_Core_Model_Url extends Varien_Object
      }
  
      /**
@@ -1670,7 +1649,7 @@ index c87bf48..28086af 100644
       *
       * @param string $url
 diff --git app/code/core/Mage/Core/functions.php app/code/core/Mage/Core/functions.php
-index fbd0acc..ac6cfc2 100644
+index 06894ae..6f4de6c 100644
 --- app/code/core/Mage/Core/functions.php
 +++ app/code/core/Mage/Core/functions.php
 @@ -375,3 +375,38 @@ if ( !function_exists('sys_get_temp_dir') ) {
@@ -1713,7 +1692,7 @@ index fbd0acc..ac6cfc2 100644
 +    }
 +}
 diff --git app/code/core/Mage/Customer/Block/Address/Book.php app/code/core/Mage/Customer/Block/Address/Book.php
-index 2b295c5..9bc7c69 100644
+index 8957f6b..07306bf 100644
 --- app/code/core/Mage/Customer/Block/Address/Book.php
 +++ app/code/core/Mage/Customer/Block/Address/Book.php
 @@ -56,7 +56,8 @@ class Mage_Customer_Block_Address_Book extends Mage_Core_Block_Template
@@ -1727,7 +1706,7 @@ index 2b295c5..9bc7c69 100644
  
      public function getAddressEditUrl($address)
 diff --git app/code/core/Mage/Customer/controllers/AccountController.php app/code/core/Mage/Customer/controllers/AccountController.php
-index 60be0f7..7361168 100644
+index 49cb60a..6aa708f 100644
 --- app/code/core/Mage/Customer/controllers/AccountController.php
 +++ app/code/core/Mage/Customer/controllers/AccountController.php
 @@ -140,6 +140,11 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
@@ -1753,27 +1732,25 @@ index 60be0f7..7361168 100644
                              break;
                          case Mage_Customer_Model_Customer::EXCEPTION_INVALID_EMAIL_OR_PASSWORD:
                              $message = $e->getMessage();
-@@ -188,7 +193,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
- 
+@@ -189,7 +194,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
          if (!$session->getBeforeAuthUrl() || $session->getBeforeAuthUrl() == Mage::getBaseUrl()) {
+ 
              // Set default URL to redirect customer to
 -            $session->setBeforeAuthUrl(Mage::helper('customer')->getAccountUrl());
 +            $session->setBeforeAuthUrl($this->_getHelper('customer')->getAccountUrl());
              // Redirect customer to the last page visited after logging in
              if ($session->isLoggedIn()) {
                  if (!Mage::getStoreConfigFlag(
-@@ -197,8 +202,8 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -197,7 +202,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+                 )) {
                      $referer = $this->getRequest()->getParam(Mage_Customer_Helper_Data::REFERER_QUERY_PARAM_NAME);
                      if ($referer) {
-                         // Rebuild referer URL to handle the case when SID was changed
--                        $referer = Mage::getModel('core/url')
--                            ->getRebuiltUrl(Mage::helper('core')->urlDecode($referer));
-+                        $referer = $this->_getModel('core/url')
-+                            ->getRebuiltUrl($this->_getHelper('core')->urlDecode($referer));
+-                        $referer = Mage::helper('core')->urlDecode($referer);
++                        $referer = $this->_getHelper('core')->urlDecode($referer);
                          if ($this->_isUrlInternal($referer)) {
                              $session->setBeforeAuthUrl($referer);
                          }
-@@ -207,10 +212,10 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -206,10 +211,10 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
                      $session->setBeforeAuthUrl($session->getAfterAuthUrl(true));
                  }
              } else {
@@ -1787,7 +1764,7 @@ index 60be0f7..7361168 100644
          } else {
              if (!$session->getAfterAuthUrl()) {
                  $session->setAfterAuthUrl($session->getBeforeAuthUrl());
-@@ -267,125 +272,254 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -266,125 +271,254 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
              return;
          }
  
@@ -1893,12 +1870,12 @@ index 60be0f7..7361168 100644
 +         * Initialize customer group id
 +         */
 +        $customer->getGroupId();
-+
-+        return $customer;
-+    }
  
 -            if ($this->getRequest()->getParam('is_subscribed', false)) {
 -                $customer->setIsSubscribed(1);
++        return $customer;
++    }
++
 +    /**
 +     * Add session error method
 +     *
@@ -2070,6 +2047,7 @@ index 60be0f7..7361168 100644
 -                $session->setCustomerFormData($this->getRequest()->getPost())
 -                    ->addException($e, $this->__('Cannot save the customer.'));
 -            }
+-        }
 +    /**
 +     * Dispatch Event
 +     *
@@ -2081,7 +2059,8 @@ index 60be0f7..7361168 100644
 +            array('account_controller' => $this, 'customer' => $customer)
 +        );
 +    }
-+
+ 
+-        $this->_redirectError(Mage::getUrl('*/*/create', array('_secure' => true)));
 +    /**
 +     * Get errors on provided customer address
 +     *
@@ -2102,7 +2081,7 @@ index 60be0f7..7361168 100644
 +        $addressErrors = $addressForm->validateData($addressData);
 +        if (is_array($addressErrors)) {
 +            $errors = $addressErrors;
-         }
++        }
 +        $address->setId(null)
 +            ->setIsDefaultBilling($this->getRequest()->getParam('default_billing', false))
 +            ->setIsDefaultShipping($this->getRequest()->getParam('default_shipping', false));
@@ -2115,8 +2094,7 @@ index 60be0f7..7361168 100644
 +        }
 +        return $errors;
 +    }
- 
--        $this->_redirectError(Mage::getUrl('*/*/create', array('_secure' => true)));
++
 +    /**
 +     * Get model by path
 +     *
@@ -2141,36 +2119,16 @@ index 60be0f7..7361168 100644
      }
  
      /**
-@@ -403,14 +537,16 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-         );
-         if ($this->_isVatValidationEnabled()) {
-             // Show corresponding VAT message to customer
--            $configAddressType = Mage::helper('customer/address')->getTaxCalculationAddressType();
-+            $configAddressType = $this->_getHelper('customer/address')->getTaxCalculationAddressType();
-             $userPrompt = '';
-             switch ($configAddressType) {
-                 case Mage_Customer_Model_Address_Abstract::TYPE_SHIPPING:
--                    $userPrompt = $this->__('If you are a registered VAT customer, please click <a href="%s">here</a> to enter you shipping address for proper VAT calculation', Mage::getUrl('customer/address/edit'));
-+                    $userPrompt = $this->__('If you are a registered VAT customer, please click <a href="%s">here</a> to enter you shipping address for proper VAT calculation',
-+                        $this->_getUrl('customer/address/edit'));
-                     break;
-                 default:
--                    $userPrompt = $this->__('If you are a registered VAT customer, please click <a href="%s">here</a> to enter you billing address for proper VAT calculation', Mage::getUrl('customer/address/edit'));
-+                    $userPrompt = $this->__('If you are a registered VAT customer, please click <a href="%s">here</a> to enter you billing address for proper VAT calculation',
-+                        $this->_getUrl('customer/address/edit'));
-             }
-             $this->_getSession()->addSuccess($userPrompt);
-         }
-@@ -421,7 +557,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -407,7 +541,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
              Mage::app()->getStore()->getId()
          );
  
 -        $successUrl = Mage::getUrl('*/*/index', array('_secure'=>true));
-+        $successUrl = $this->_getUrl('*/*/index', array('_secure' => true));
++        $successUrl = $this->_getUrl('*/*/index', array('_secure'=>true));
          if ($this->_getSession()->getBeforeAuthUrl()) {
              $successUrl = $this->_getSession()->getBeforeAuthUrl(true);
          }
-@@ -433,7 +569,8 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -419,7 +553,8 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
       */
      public function confirmAction()
      {
@@ -2180,7 +2138,7 @@ index 60be0f7..7361168 100644
              $this->_redirect('*/*/');
              return;
          }
-@@ -447,7 +584,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -433,7 +568,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
  
              // load customer by id (try/catch in case if it throws exceptions)
              try {
@@ -2189,7 +2147,7 @@ index 60be0f7..7361168 100644
                  if ((!$customer) || (!$customer->getId())) {
                      throw new Exception('Failed to load customer by id.');
                  }
-@@ -471,21 +608,22 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -457,21 +592,22 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
                      throw new Exception($this->__('Failed to confirm customer account.'));
                  }
  
@@ -2215,7 +2173,7 @@ index 60be0f7..7361168 100644
              return;
          }
      }
-@@ -495,7 +633,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -481,7 +617,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
       */
      public function confirmationAction()
      {
@@ -2224,7 +2182,7 @@ index 60be0f7..7361168 100644
          if ($this->_getSession()->isLoggedIn()) {
              $this->_redirect('*/*/');
              return;
-@@ -516,10 +654,10 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -502,10 +638,10 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
                      $this->_getSession()->addSuccess($this->__('This email does not require confirmation.'));
                  }
                  $this->_getSession()->setUsername($email);
@@ -2237,7 +2195,7 @@ index 60be0f7..7361168 100644
              }
              return;
          }
-@@ -535,6 +673,18 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -521,6 +657,18 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
      }
  
      /**
@@ -2256,7 +2214,7 @@ index 60be0f7..7361168 100644
       * Forgot customer password page
       */
      public function forgotPasswordAction()
-@@ -565,13 +715,13 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -551,13 +699,13 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
              }
  
              /** @var $customer Mage_Customer_Model_Customer */
@@ -2272,7 +2230,7 @@ index 60be0f7..7361168 100644
                      $customer->changeResetPasswordLinkToken($newResetPasswordLinkToken);
                      $customer->sendPasswordResetConfirmationEmail();
                  } catch (Exception $exception) {
-@@ -581,7 +731,9 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -567,7 +715,9 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
                  }
              }
              $this->_getSession()
@@ -2283,7 +2241,7 @@ index 60be0f7..7361168 100644
              $this->_redirect('*/*/');
              return;
          } else {
-@@ -626,16 +778,14 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -612,16 +762,14 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
                  ->_redirect('*/*/changeforgotten');
  
          } catch (Exception $exception) {
@@ -2301,7 +2259,7 @@ index 60be0f7..7361168 100644
       */
      public function resetPasswordPostAction()
      {
-@@ -646,17 +796,17 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -632,17 +780,17 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
          try {
              $this->_validateResetPasswordLinkToken($customerId, $resetPasswordLinkToken);
          } catch (Exception $exception) {
@@ -2322,7 +2280,7 @@ index 60be0f7..7361168 100644
  
          $customer->setPassword($password);
          $customer->setConfirmation($passwordConfirmation);
-@@ -684,7 +834,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -670,7 +818,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
              $this->_getSession()->unsetData(self::TOKEN_SESSION_NAME);
              $this->_getSession()->unsetData(self::CUSTOMER_ID_SESSION_NAME);
  
@@ -2331,7 +2289,7 @@ index 60be0f7..7361168 100644
              $this->_redirect('*/*/login');
          } catch (Exception $exception) {
              $this->_getSession()->addException($exception, $this->__('Cannot save a new password.'));
-@@ -708,18 +858,18 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -694,18 +842,18 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
              || empty($customerId)
              || $customerId < 0
          ) {
@@ -2354,7 +2312,7 @@ index 60be0f7..7361168 100644
          }
      }
  
-@@ -741,7 +891,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -727,7 +875,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
          if (!empty($data)) {
              $customer->addData($data);
          }
@@ -2363,7 +2321,7 @@ index 60be0f7..7361168 100644
              $customer->setChangePassword(1);
          }
  
-@@ -764,7 +914,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -750,7 +898,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
              $customer = $this->_getSession()->getCustomer();
  
              /** @var $customerForm Mage_Customer_Model_Form */
@@ -2372,7 +2330,7 @@ index 60be0f7..7361168 100644
              $customerForm->setFormCode('customer_account_edit')
                  ->setEntity($customer);
  
-@@ -785,7 +935,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
+@@ -771,7 +919,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
                      $confPass   = $this->getRequest()->getPost('confirmation');
  
                      $oldPass = $this->_getSession()->getCustomer()->getPasswordHash();
@@ -2381,17 +2339,8 @@ index 60be0f7..7361168 100644
                          list($_salt, $salt) = explode(':', $oldPass);
                      } else {
                          $salt = false;
-@@ -863,7 +1013,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-      */
-     protected function _isVatValidationEnabled($store = null)
-     {
--        return Mage::helper('customer/address')->isVatValidationEnabled($store);
-+        return $this->_getHelper('customer/address')->isVatValidationEnabled($store);
-     }
- 
-     /**
 diff --git app/code/core/Mage/Customer/controllers/AddressController.php app/code/core/Mage/Customer/controllers/AddressController.php
-index 22dcc23..ab0916f 100644
+index a410ff8..259411a 100644
 --- app/code/core/Mage/Customer/controllers/AddressController.php
 +++ app/code/core/Mage/Customer/controllers/AddressController.php
 @@ -163,6 +163,9 @@ class Mage_Customer_AddressController extends Mage_Core_Controller_Front_Action
@@ -2405,7 +2354,7 @@ index 22dcc23..ab0916f 100644
  
          if ($addressId) {
 diff --git app/code/core/Mage/Dataflow/Model/Profile.php app/code/core/Mage/Dataflow/Model/Profile.php
-index b6062cd..20bdf0e 100644
+index 4a13a6d..c746f55 100644
 --- app/code/core/Mage/Dataflow/Model/Profile.php
 +++ app/code/core/Mage/Dataflow/Model/Profile.php
 @@ -64,10 +64,14 @@ class Mage_Dataflow_Model_Profile extends Mage_Core_Model_Abstract
@@ -2442,7 +2391,7 @@ index b6062cd..20bdf0e 100644
  
          $profileHistory = Mage::getModel('dataflow/profile_history');
 diff --git app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Links.php app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Links.php
-index 6156e3b..d88c7fd 100644
+index 77ddb28..0e0d677 100644
 --- app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Links.php
 +++ app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Links.php
 @@ -32,7 +32,7 @@
@@ -2551,19 +2500,20 @@ index 6156e3b..d88c7fd 100644
      }
  }
 diff --git app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Samples.php app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Samples.php
-index 94e9040..0d2b560 100644
+index 5c50d21..4d524b8 100644
 --- app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Samples.php
 +++ app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Samples.php
-@@ -32,7 +32,7 @@
+@@ -31,7 +31,8 @@
+  * @package     Mage_Downloadable
   * @author      Magento Core Team <core@magentocommerce.com>
   */
- class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Samples
--    extends Mage_Adminhtml_Block_Widget
+-class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Samples extends Mage_Adminhtml_Block_Widget
++class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Samples
 +    extends Mage_Uploader_Block_Single
  {
      /**
       * Class constructor
-@@ -148,6 +148,7 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
+@@ -147,6 +148,7 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
       */
      protected function _prepareLayout()
      {
@@ -2571,7 +2521,7 @@ index 94e9040..0d2b560 100644
          $this->setChild(
              'upload_button',
              $this->getLayout()->createBlock('adminhtml/widget_button')
-@@ -158,6 +159,11 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
+@@ -157,6 +159,11 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
                      'onclick' => 'Downloadable.massUploadByType(\'samples\')'
                  ))
          );
@@ -2583,7 +2533,7 @@ index 94e9040..0d2b560 100644
      }
  
      /**
-@@ -171,40 +177,59 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
+@@ -170,38 +177,59 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
      }
  
      /**
@@ -2594,9 +2544,7 @@ index 94e9040..0d2b560 100644
       */
      public function getConfigJson()
      {
--        $this->getConfig()->setUrl(Mage::getModel('adminhtml/url')
--            ->addSessionParam()
--            ->getUrl('*/downloadable_file/upload', array('type' => 'samples', '_secure' => true)));
+-        $this->getConfig()->setUrl(Mage::getModel('adminhtml/url')->addSessionParam()->getUrl('*/downloadable_file/upload', array('type' => 'samples', '_secure' => true)));
 -        $this->getConfig()->setParams(array('form_key' => $this->getFormKey()));
 -        $this->getConfig()->setFileField('samples');
 -        $this->getConfig()->setFilters(array(
@@ -2667,7 +2615,7 @@ index 94e9040..0d2b560 100644
      }
  }
 diff --git app/code/core/Mage/Downloadable/Helper/File.php app/code/core/Mage/Downloadable/Helper/File.php
-index 8ec4dfb..6241fb9 100644
+index 4e09b03..11a1a3b 100644
 --- app/code/core/Mage/Downloadable/Helper/File.php
 +++ app/code/core/Mage/Downloadable/Helper/File.php
 @@ -33,15 +33,35 @@
@@ -3367,37 +3315,11 @@ index 8ec4dfb..6241fb9 100644
 -            'xodt' => 'application/x-vnd.oasis.opendocument.spreadsheet'
 -        );
  }
-diff --git app/code/core/Mage/Oauth/Model/Server.php app/code/core/Mage/Oauth/Model/Server.php
-index b5fdb2c..1aaaa9b 100644
---- app/code/core/Mage/Oauth/Model/Server.php
-+++ app/code/core/Mage/Oauth/Model/Server.php
-@@ -328,10 +328,10 @@ class Mage_Oauth_Model_Server
-             if (self::REQUEST_TOKEN == $this->_requestType) {
-                 $this->_validateVerifierParam();
- 
--                if ($this->_token->getVerifier() != $this->_protocolParams['oauth_verifier']) {
-+                if (!hash_equals($this->_token->getVerifier(), $this->_protocolParams['oauth_verifier'])) {
-                     $this->_throwException('', self::ERR_VERIFIER_INVALID);
-                 }
--                if ($this->_token->getConsumerId() != $this->_consumer->getId()) {
-+                if (!hash_equals($this->_token->getConsumerId(), $this->_consumer->getId())) {
-                     $this->_throwException('', self::ERR_TOKEN_REJECTED);
-                 }
-                 if (Mage_Oauth_Model_Token::TYPE_REQUEST != $this->_token->getType()) {
-@@ -541,7 +541,7 @@ class Mage_Oauth_Model_Server
-             $this->_request->getScheme() . '://' . $this->_request->getHttpHost() . $this->_request->getRequestUri()
-         );
- 
--        if ($calculatedSign != $this->_protocolParams['oauth_signature']) {
-+        if (!hash_equals($calculatedSign, $this->_protocolParams['oauth_signature'])) {
-             $this->_throwException($calculatedSign, self::ERR_SIGNATURE_INVALID);
-         }
-     }
 diff --git app/code/core/Mage/Paygate/Model/Authorizenet.php app/code/core/Mage/Paygate/Model/Authorizenet.php
-index 0ad8cf2..f947216 100644
+index 7678300..e288f2f 100644
 --- app/code/core/Mage/Paygate/Model/Authorizenet.php
 +++ app/code/core/Mage/Paygate/Model/Authorizenet.php
-@@ -1261,8 +1261,10 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
+@@ -1218,8 +1218,10 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
          $uri = $this->getConfigData('cgi_url');
          $client->setUri($uri ? $uri : self::CGI_URL);
          $client->setConfig(array(
@@ -3410,7 +3332,7 @@ index 0ad8cf2..f947216 100644
              //'ssltransport' => 'tcp',
          ));
          foreach ($request->getData() as $key => $value) {
-@@ -1529,8 +1531,13 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
+@@ -1486,8 +1488,13 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
  
          $client = new Varien_Http_Client();
          $uri = $this->getConfigData('cgi_url_td');
@@ -3427,7 +3349,7 @@ index 0ad8cf2..f947216 100644
          $client->setMethod(Zend_Http_Client::POST);
          $client->setRawData($requestBody);
 diff --git app/code/core/Mage/Payment/Block/Info/Checkmo.php app/code/core/Mage/Payment/Block/Info/Checkmo.php
-index 57572c0..2bc2e59 100644
+index 3fd7ea3..470ef05 100644
 --- app/code/core/Mage/Payment/Block/Info/Checkmo.php
 +++ app/code/core/Mage/Payment/Block/Info/Checkmo.php
 @@ -70,7 +70,13 @@ class Mage_Payment_Block_Info_Checkmo extends Mage_Payment_Block_Info
@@ -3455,7 +3377,7 @@ index 57572c0..2bc2e59 100644
      {
          $this->setTemplate('payment/info/pdf/checkmo.phtml');
 diff --git app/code/core/Mage/Paypal/Model/Resource/Payment/Transaction.php app/code/core/Mage/Paypal/Model/Resource/Payment/Transaction.php
-index af5bce2..c582558 100644
+index 981f4c3..7595593 100644
 --- app/code/core/Mage/Paypal/Model/Resource/Payment/Transaction.php
 +++ app/code/core/Mage/Paypal/Model/Resource/Payment/Transaction.php
 @@ -53,6 +53,30 @@ class Mage_Paypal_Model_Resource_Payment_Transaction extends Mage_Core_Model_Res
@@ -3489,11 +3411,35 @@ index af5bce2..c582558 100644
       * Load the transaction object by specified txn_id
       *
       * @param Mage_Paypal_Model_Payment_Transaction $transaction
+diff --git app/code/core/Mage/ProductAlert/Block/Email/Abstract.php app/code/core/Mage/ProductAlert/Block/Email/Abstract.php
+index b6ff4b9..99b4fbf 100644
+--- app/code/core/Mage/ProductAlert/Block/Email/Abstract.php
++++ app/code/core/Mage/ProductAlert/Block/Email/Abstract.php
+@@ -135,4 +135,19 @@ abstract class Mage_ProductAlert_Block_Email_Abstract extends Mage_Core_Block_Te
+             '_store_to_url' => true
+         );
+     }
++
++    /**
++     * Get filtered product short description to be inserted into mail
++     *
++     * @param Mage_Catalog_Model_Product $product
++     * @return string|null
++     */
++    public function _getFilteredProductShortDescription(Mage_Catalog_Model_Product $product)
++    {
++        $shortDescription = $product->getShortDescription();
++        if ($shortDescription) {
++            $shortDescription = Mage::getSingleton('core/input_filter_maliciousCode')->filter($shortDescription);
++        }
++        return $shortDescription;
++    }
+ }
 diff --git app/code/core/Mage/Review/controllers/ProductController.php app/code/core/Mage/Review/controllers/ProductController.php
-index d35c296..27c6ec5 100644
+index 82361cb..58e8ce6 100644
 --- app/code/core/Mage/Review/controllers/ProductController.php
 +++ app/code/core/Mage/Review/controllers/ProductController.php
-@@ -155,6 +155,12 @@ class Mage_Review_ProductController extends Mage_Core_Controller_Front_Action
+@@ -149,6 +149,12 @@ class Mage_Review_ProductController extends Mage_Core_Controller_Front_Action
       */
      public function postAction()
      {
@@ -3507,7 +3453,7 @@ index d35c296..27c6ec5 100644
              $rating = array();
              if (isset($data['ratings']) && is_array($data['ratings'])) {
 diff --git app/code/core/Mage/Sales/Model/Resource/Order/Payment.php app/code/core/Mage/Sales/Model/Resource/Order/Payment.php
-index 830d7ab..d3d1f71 100755
+index d2ae6eb..865888c 100755
 --- app/code/core/Mage/Sales/Model/Resource/Order/Payment.php
 +++ app/code/core/Mage/Sales/Model/Resource/Order/Payment.php
 @@ -58,4 +58,28 @@ class Mage_Sales_Model_Resource_Order_Payment extends Mage_Sales_Model_Resource_
@@ -3540,7 +3486,7 @@ index 830d7ab..d3d1f71 100755
 +    }
  }
 diff --git app/code/core/Mage/Sales/Model/Resource/Order/Payment/Transaction.php app/code/core/Mage/Sales/Model/Resource/Order/Payment/Transaction.php
-index 7447967..82c7b10 100755
+index 928f7cc..40270aa 100755
 --- app/code/core/Mage/Sales/Model/Resource/Order/Payment/Transaction.php
 +++ app/code/core/Mage/Sales/Model/Resource/Order/Payment/Transaction.php
 @@ -53,6 +53,30 @@ class Mage_Sales_Model_Resource_Order_Payment_Transaction extends Mage_Sales_Mod
@@ -3575,7 +3521,7 @@ index 7447967..82c7b10 100755
       * have to repeat the business logic to avoid accidental injection of wrong transactions
       *
 diff --git app/code/core/Mage/Sales/Model/Resource/Quote/Payment.php app/code/core/Mage/Sales/Model/Resource/Quote/Payment.php
-index 8f8f0d1..ac4b8fe 100755
+index c36456b..1808744 100755
 --- app/code/core/Mage/Sales/Model/Resource/Quote/Payment.php
 +++ app/code/core/Mage/Sales/Model/Resource/Quote/Payment.php
 @@ -51,4 +51,28 @@ class Mage_Sales_Model_Resource_Quote_Payment extends Mage_Sales_Model_Resource_
@@ -3608,7 +3554,7 @@ index 8f8f0d1..ac4b8fe 100755
 +    }
  }
 diff --git app/code/core/Mage/Sales/Model/Resource/Recurring/Profile.php app/code/core/Mage/Sales/Model/Resource/Recurring/Profile.php
-index d637be3b..5ad9383 100755
+index 6c020f3..07bc6b3 100755
 --- app/code/core/Mage/Sales/Model/Resource/Recurring/Profile.php
 +++ app/code/core/Mage/Sales/Model/Resource/Recurring/Profile.php
 @@ -54,6 +54,33 @@ class Mage_Sales_Model_Resource_Recurring_Profile extends Mage_Sales_Model_Resou
@@ -5257,10 +5203,10 @@ index 0000000..4d7d405
 +    </uploader-uploading-progress>
 +</jstranslator>
 diff --git app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl.php app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl.php
-index ed20e08..d89cfa5 100644
+index c56d97e..1e2b399 100644
 --- app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl.php
 +++ app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl.php
-@@ -566,8 +566,8 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl
+@@ -564,8 +564,8 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl
                  $ch = curl_init();
                  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                  curl_setopt($ch, CURLOPT_URL, $url);
@@ -5271,7 +5217,7 @@ index ed20e08..d89cfa5 100644
                  curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
                  $responseBody = curl_exec($ch);
                  curl_close($ch);
-@@ -1070,8 +1070,8 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl
+@@ -1071,8 +1071,8 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl
              $ch = curl_init();
              curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
              curl_setopt($ch, CURLOPT_URL, $url);
@@ -5282,57 +5228,11 @@ index ed20e08..d89cfa5 100644
              curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
              $responseBody = curl_exec($ch);
              $debugData['result'] = $responseBody;
-diff --git app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl/International.php app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl/International.php
-index 06bf2f5..5c564da 100644
---- app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl/International.php
-+++ app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl/International.php
-@@ -841,7 +841,12 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl_International
-             try {
-                 $client = new Varien_Http_Client();
-                 $client->setUri((string)$this->getConfigData('gateway_url'));
--                $client->setConfig(array('maxredirects' => 0, 'timeout' => 30));
-+                $client->setConfig(array(
-+                    'maxredirects' => 0,
-+                    'timeout' => 30,
-+                    'verifypeer' => $this->getConfigFlag('verify_peer'),
-+                    'verifyhost' => 2,
-+                ));
-                 $client->setRawData($request);
-                 $responseBody = $client->request(Varien_Http_Client::POST)->getBody();
-                 $debugData['result'] = $responseBody;
-@@ -1362,7 +1367,12 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl_International
-             try {
-                 $client = new Varien_Http_Client();
-                 $client->setUri((string)$this->getConfigData('gateway_url'));
--                $client->setConfig(array('maxredirects' => 0, 'timeout' => 30));
-+                $client->setConfig(array(
-+                    'maxredirects' => 0,
-+                    'timeout' => 30,
-+                    'verifypeer' => $this->getConfigFlag('verify_peer'),
-+                    'verifyhost' => 2,
-+                ));
-                 $client->setRawData($request);
-                 $responseBody = $client->request(Varien_Http_Client::POST)->getBody();
-                 $debugData['result'] = $responseBody;
-@@ -1554,7 +1564,12 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl_International
-             try {
-                 $client = new Varien_Http_Client();
-                 $client->setUri((string)$this->getConfigData('gateway_url'));
--                $client->setConfig(array('maxredirects' => 0, 'timeout' => 30));
-+                $client->setConfig(array(
-+                    'maxredirects' => 0,
-+                    'timeout' => 30,
-+                    'verifypeer' => $this->getConfigFlag('verify_peer'),
-+                    'verifyhost' => 2,
-+                ));
-                 $client->setRawData($request);
-                 $responseBody = $client->request(Varien_Http_Client::POST)->getBody();
-                 $debugData['result'] = $responseBody;
 diff --git app/code/core/Mage/Usa/Model/Shipping/Carrier/Fedex.php app/code/core/Mage/Usa/Model/Shipping/Carrier/Fedex.php
-index 604f1fa..f04dc04 100644
+index d567b6e..c263b19 100644
 --- app/code/core/Mage/Usa/Model/Shipping/Carrier/Fedex.php
 +++ app/code/core/Mage/Usa/Model/Shipping/Carrier/Fedex.php
-@@ -563,6 +563,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex
+@@ -455,6 +455,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex
      /**
       * Get xml quotes
       *
@@ -5340,7 +5240,7 @@ index 604f1fa..f04dc04 100644
       * @return Mage_Shipping_Model_Rate_Result
       */
      protected function _getXmlQuotes()
-@@ -622,8 +623,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex
+@@ -514,8 +515,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex
                  $ch = curl_init();
                  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                  curl_setopt($ch, CURLOPT_URL, $url);
@@ -5352,10 +5252,10 @@ index 604f1fa..f04dc04 100644
                  $responseBody = curl_exec($ch);
                  curl_close ($ch);
 diff --git app/code/core/Mage/Usa/Model/Shipping/Carrier/Ups.php app/code/core/Mage/Usa/Model/Shipping/Carrier/Ups.php
-index a026a7e..aaca20a 100644
+index 3819a2e..97b8c73 100644
 --- app/code/core/Mage/Usa/Model/Shipping/Carrier/Ups.php
 +++ app/code/core/Mage/Usa/Model/Shipping/Carrier/Ups.php
-@@ -932,7 +932,7 @@ XMLRequest;
+@@ -929,7 +929,7 @@ XMLRequest;
                  curl_setopt($ch, CURLOPT_POST, 1);
                  curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlRequest);
                  curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -5383,10 +5283,10 @@ index a026a7e..aaca20a 100644
              if ($xmlResponse === false) {
                  throw new Exception(curl_error($ch));
 diff --git app/code/core/Mage/Usa/etc/config.xml app/code/core/Mage/Usa/etc/config.xml
-index 6273178..e9b47a1 100644
+index aeed112..8e66d89 100644
 --- app/code/core/Mage/Usa/etc/config.xml
 +++ app/code/core/Mage/Usa/etc/config.xml
-@@ -114,6 +114,7 @@
+@@ -104,6 +104,7 @@
                  <dutypaymenttype>R</dutypaymenttype>
                  <free_method>G</free_method>
                  <gateway_url>https://eCommerce.airborne.com/ApiLandingTest.asp</gateway_url>
@@ -5394,7 +5294,7 @@ index 6273178..e9b47a1 100644
                  <id backend_model="adminhtml/system_config_backend_encrypted"/>
                  <model>usa/shipping_carrier_dhl</model>
                  <password backend_model="adminhtml/system_config_backend_encrypted"/>
-@@ -181,6 +182,7 @@
+@@ -168,6 +169,7 @@
                  <negotiated_active>0</negotiated_active>
                  <mode_xml>1</mode_xml>
                  <type>UPS</type>
@@ -5402,19 +5302,11 @@ index 6273178..e9b47a1 100644
              </ups>
              <usps>
                  <active>0</active>
-@@ -216,6 +218,7 @@
-                 <doc_methods>2,5,6,7,9,B,C,D,U,K,L,G,W,I,N,O,R,S,T,X</doc_methods>
-                 <free_method>G</free_method>
-                 <gateway_url>https://xmlpi-ea.dhl.com/XMLShippingServlet</gateway_url>
-+                <verify_peer>0</verify_peer>
-                 <id backend_model="adminhtml/system_config_backend_encrypted"/>
-                 <password backend_model="adminhtml/system_config_backend_encrypted"/>
-                 <shipment_type>N</shipment_type>
 diff --git app/code/core/Mage/Usa/etc/system.xml app/code/core/Mage/Usa/etc/system.xml
-index b6e7ba5..7a4de06 100644
+index eecf439..d4f2bc4 100644
 --- app/code/core/Mage/Usa/etc/system.xml
 +++ app/code/core/Mage/Usa/etc/system.xml
-@@ -130,6 +130,15 @@
+@@ -129,6 +129,15 @@
                              <show_in_website>1</show_in_website>
                              <show_in_store>0</show_in_store>
                          </gateway_url>
@@ -5430,7 +5322,7 @@ index b6e7ba5..7a4de06 100644
                          <handling_type translate="label">
                              <label>Calculate Handling Fee</label>
                              <frontend_type>select</frontend_type>
-@@ -735,6 +744,15 @@
+@@ -691,6 +700,15 @@
                              <show_in_website>1</show_in_website>
                              <show_in_store>0</show_in_store>
                          </gateway_url>
@@ -5446,27 +5338,11 @@ index b6e7ba5..7a4de06 100644
                          <gateway_xml_url translate="label">
                              <label>Gateway XML URL</label>
                              <frontend_type>text</frontend_type>
-@@ -1239,6 +1257,15 @@
-                             <show_in_website>1</show_in_website>
-                             <show_in_store>0</show_in_store>
-                         </gateway_url>
-+                        <verify_peer translate="label">
-+                            <label>Enable SSL Verification</label>
-+                            <frontend_type>select</frontend_type>
-+                            <source_model>adminhtml/system_config_source_yesno</source_model>
-+                            <sort_order>30</sort_order>
-+                            <show_in_default>1</show_in_default>
-+                            <show_in_website>1</show_in_website>
-+                            <show_in_store>0</show_in_store>
-+                        </verify_peer>
-                         <title translate="label">
-                             <label>Title</label>
-                             <frontend_type>text</frontend_type>
 diff --git app/code/core/Mage/Wishlist/Controller/Abstract.php app/code/core/Mage/Wishlist/Controller/Abstract.php
-index ee1d08b..b67ca4e 100644
+index aa04088..cfd4c9a 100644
 --- app/code/core/Mage/Wishlist/Controller/Abstract.php
 +++ app/code/core/Mage/Wishlist/Controller/Abstract.php
-@@ -73,10 +73,15 @@ abstract class Mage_Wishlist_Controller_Abstract extends Mage_Core_Controller_Fr
+@@ -71,10 +71,15 @@ abstract class Mage_Wishlist_Controller_Abstract extends Mage_Core_Controller_Fr
       */
      public function allcartAction()
      {
@@ -5483,7 +5359,7 @@ index ee1d08b..b67ca4e 100644
          }
          $isOwner    = $wishlist->isOwner(Mage::getSingleton('customer/session')->getCustomerId());
  
-@@ -89,7 +94,9 @@ abstract class Mage_Wishlist_Controller_Abstract extends Mage_Core_Controller_Fr
+@@ -87,7 +92,9 @@ abstract class Mage_Wishlist_Controller_Abstract extends Mage_Core_Controller_Fr
          $collection = $wishlist->getItemCollection()
                  ->setVisibilityFilter();
  
@@ -5495,10 +5371,10 @@ index ee1d08b..b67ca4e 100644
              /** @var Mage_Wishlist_Model_Item */
              try {
 diff --git app/code/core/Mage/Wishlist/Helper/Data.php app/code/core/Mage/Wishlist/Helper/Data.php
-index 93a1e7f..7f69583 100644
+index 3940e0d..f3d4818 100644
 --- app/code/core/Mage/Wishlist/Helper/Data.php
 +++ app/code/core/Mage/Wishlist/Helper/Data.php
-@@ -135,11 +135,9 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
+@@ -105,11 +105,9 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
          if (is_null($this->_wishlist)) {
              if (Mage::registry('shared_wishlist')) {
                  $this->_wishlist = Mage::registry('shared_wishlist');
@@ -5510,9 +5386,9 @@ index 93a1e7f..7f69583 100644
 -            else {
 +            } else {
                  $this->_wishlist = Mage::getModel('wishlist/wishlist');
-                 if ($this->getCustomer()) {
-                     $this->_wishlist->loadByCustomer($this->getCustomer());
-@@ -260,8 +258,7 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
+                 if ($this->_getCustomerSession()->isLoggedIn()) {
+                     $this->_wishlist->loadByCustomer($this->_getCustomerSession()->getCustomer());
+@@ -223,8 +221,7 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
          if ($product) {
              if ($product->isVisibleInSiteVisibility()) {
                  $storeId = $product->getStoreId();
@@ -5522,7 +5398,7 @@ index 93a1e7f..7f69583 100644
                  $storeId = $product->getUrlDataObject()->getStoreId();
              }
          }
-@@ -277,7 +274,10 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
+@@ -240,7 +237,10 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
      public function getRemoveUrl($item)
      {
          return $this->_getUrl('wishlist/index/remove',
@@ -5534,7 +5410,7 @@ index 93a1e7f..7f69583 100644
          );
      }
  
-@@ -360,40 +360,62 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
+@@ -312,40 +312,62 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
              $productId = $item->getProductId();
          }
  
@@ -5609,7 +5485,7 @@ index 93a1e7f..7f69583 100644
       * Retrieve URL for adding item to shoping cart from shared wishlist
       *
       * @param string|Mage_Catalog_Model_Product|Mage_Wishlist_Model_Item $item
-@@ -407,10 +429,10 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
+@@ -359,10 +381,10 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
              '_store_to_url' => true,
          )));
  
@@ -5623,7 +5499,7 @@ index 93a1e7f..7f69583 100644
          return $this->_getUrlStore($item)->getUrl('wishlist/shared/cart', $params);
      }
 diff --git app/code/core/Mage/Wishlist/controllers/IndexController.php app/code/core/Mage/Wishlist/controllers/IndexController.php
-index c750064..46c9355 100644
+index 90441d1..396527b 100644
 --- app/code/core/Mage/Wishlist/controllers/IndexController.php
 +++ app/code/core/Mage/Wishlist/controllers/IndexController.php
 @@ -48,6 +48,11 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
@@ -5638,15 +5514,11 @@ index c750064..46c9355 100644
      public function preDispatch()
      {
          parent::preDispatch();
-@@ -152,9 +157,24 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
- 
-     /**
-      * Adding new item
-+     *
-+     * @return Mage_Core_Controller_Varien_Action|void
+@@ -136,14 +141,28 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
       */
      public function addAction()
      {
+-        $session = Mage::getSingleton('customer/session');
 +        if (!$this->_validateFormKey()) {
 +            return $this->_redirect('*/*');
 +        }
@@ -5662,17 +5534,18 @@ index c750064..46c9355 100644
 +    {
          $wishlist = $this->_getWishlist();
          if (!$wishlist) {
-             return $this->norouteAction();
-@@ -162,7 +182,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
- 
-         $session = Mage::getSingleton('customer/session');
+             $this->_redirect('*/');
+             return;
+         }
  
 -        $productId = (int) $this->getRequest()->getParam('product');
++        $session = Mage::getSingleton('customer/session');
++
 +        $productId = (int)$this->getRequest()->getParam('product');
          if (!$productId) {
              $this->_redirect('*/');
              return;
-@@ -192,9 +212,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+@@ -173,9 +192,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
              Mage::dispatchEvent(
                  'wishlist_add_product',
                  array(
@@ -5685,30 +5558,30 @@ index c750064..46c9355 100644
                  )
              );
  
-@@ -212,10 +232,10 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
- 
-             Mage::helper('wishlist')->calculate();
- 
--            $message = $this->__('%1$s has been added to your wishlist. Click <a href="%2$s">here</a> to continue shopping.', $product->getName(), Mage::helper('core')->escapeUrl($referer));
-+            $message = $this->__('%1$s has been added to your wishlist. Click <a href="%2$s">here</a> to continue shopping.',
-+                $product->getName(), Mage::helper('core')->escapeUrl($referer));
+@@ -197,11 +216,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+                 $product->getName(), Mage::helper('core')->escapeUrl($referer)
+             );
              $session->addSuccess($message);
 -        }
 -        catch (Mage_Core_Exception $e) {
 +        } catch (Mage_Core_Exception $e) {
              $session->addError($this->__('An error occurred while adding item to wishlist: %s', $e->getMessage()));
-         }
-         catch (Exception $e) {
-@@ -337,7 +357,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+-        }
+-        catch (Exception $e) {
++        } catch (Exception $e) {
+             $session->addError($this->__('An error occurred while adding item to wishlist.'));
          }
  
+@@ -311,7 +328,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+             return $this->_redirect('*/*/');
+         }
          $post = $this->getRequest()->getPost();
 -        if($post && isset($post['description']) && is_array($post['description'])) {
 +        if ($post && isset($post['description']) && is_array($post['description'])) {
+             $wishlist = $this->_getWishlist();
              $updatedItems = 0;
  
-             foreach ($post['description'] as $itemId => $description) {
-@@ -393,8 +413,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+@@ -368,8 +385,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
                  try {
                      $wishlist->save();
                      Mage::helper('wishlist')->calculate();
@@ -5718,54 +5591,45 @@ index c750064..46c9355 100644
                      Mage::getSingleton('customer/session')->addError($this->__('Can\'t update wishlist'));
                  }
              }
-@@ -412,6 +431,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+@@ -387,6 +403,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
       */
      public function removeAction()
      {
 +        if (!$this->_validateFormKey()) {
 +            return $this->_redirect('*/*');
 +        }
+         $wishlist = $this->_getWishlist();
          $id = (int) $this->getRequest()->getParam('item');
          $item = Mage::getModel('wishlist/item')->load($id);
-         if (!$item->getId()) {
-@@ -428,7 +450,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-             Mage::getSingleton('customer/session')->addError(
-                 $this->__('An error occurred while deleting the item from wishlist: %s', $e->getMessage())
-             );
--        } catch(Exception $e) {
-+        } catch (Exception $e) {
-             Mage::getSingleton('customer/session')->addError(
-                 $this->__('An error occurred while deleting the item from wishlist.')
-             );
-@@ -447,6 +469,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+@@ -401,7 +420,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+                     $this->__('An error occurred while deleting the item from wishlist: %s', $e->getMessage())
+                 );
+             }
+-            catch(Exception $e) {
++            catch (Exception $e) {
+                 Mage::getSingleton('customer/session')->addError(
+                     $this->__('An error occurred while deleting the item from wishlist.')
+                 );
+@@ -422,6 +441,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
       */
      public function cartAction()
      {
 +        if (!$this->_validateFormKey()) {
 +            return $this->_redirect('*/*');
 +        }
-         $itemId = (int) $this->getRequest()->getParam('item');
- 
-         /* @var $item Mage_Wishlist_Model_Item */
-@@ -536,7 +561,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-         $cart = Mage::getSingleton('checkout/cart');
-         $session = Mage::getSingleton('checkout/session');
- 
--        try{
-+        try {
-             $item = $cart->getQuote()->getItemById($itemId);
-             if (!$item) {
-                 Mage::throwException(
-@@ -632,7 +657,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-                     ->createBlock('wishlist/share_email_rss')
-                     ->setWishlistId($wishlist->getId())
-                     ->toHtml();
+         $wishlist   = $this->_getWishlist();
+         if (!$wishlist) {
+             return $this->_redirect('*/*');
+@@ -546,7 +568,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+             /*if share rss added rss feed to email template*/
+             if ($this->getRequest()->getParam('rss_url')) {
+                 $rss_url = $this->getLayout()->createBlock('wishlist/share_email_rss')->toHtml();
 -                $message .=$rss_url;
 +                $message .= $rss_url;
              }
              $wishlistBlock = $this->getLayout()->createBlock('wishlist/share_email_items')->toHtml();
  
-@@ -641,19 +666,19 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+@@ -555,19 +577,19 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
              $emailModel = Mage::getModel('core/email_template');
  
              $sharingCode = $wishlist->getSharingCode();
@@ -5792,7 +5656,7 @@ index c750064..46c9355 100644
                      )
                  );
              }
-@@ -663,7 +688,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+@@ -577,7 +599,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
  
              $translate->setTranslateInline(true);
  
@@ -5801,17 +5665,17 @@ index c750064..46c9355 100644
              Mage::getSingleton('customer/session')->addSuccess(
                  $this->__('Your Wishlist has been shared.')
              );
-@@ -719,7 +744,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-                 ));
+@@ -616,7 +638,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+                     ));
+                 }
              }
- 
 -        } catch(Exception $e) {
 +        } catch (Exception $e) {
              $this->_forward('noRoute');
          }
          exit(0);
 diff --git app/code/core/Mage/XmlConnect/Block/Adminhtml/Mobile/Edit/Tab/Design.php app/code/core/Mage/XmlConnect/Block/Adminhtml/Mobile/Edit/Tab/Design.php
-index b6a249a..5e6bb9a 100644
+index 5ef12f4..ab54d20 100644
 --- app/code/core/Mage/XmlConnect/Block/Adminhtml/Mobile/Edit/Tab/Design.php
 +++ app/code/core/Mage/XmlConnect/Block/Adminhtml/Mobile/Edit/Tab/Design.php
 @@ -95,4 +95,21 @@ class Mage_XmlConnect_Block_Adminhtml_Mobile_Edit_Tab_Design
@@ -5837,7 +5701,7 @@ index b6a249a..5e6bb9a 100644
 +    }
  }
 diff --git app/design/adminhtml/default/default/layout/cms.xml app/design/adminhtml/default/default/layout/cms.xml
-index 67fbc20..cc9356e 100644
+index f822d9b..13b37e1 100644
 --- app/design/adminhtml/default/default/layout/cms.xml
 +++ app/design/adminhtml/default/default/layout/cms.xml
 @@ -82,7 +82,9 @@
@@ -5852,10 +5716,10 @@ index 67fbc20..cc9356e 100644
              </block>
          </reference>
 diff --git app/design/adminhtml/default/default/layout/main.xml app/design/adminhtml/default/default/layout/main.xml
-index f3ce2d9..99f2096 100644
+index 77af339..2a17e95 100644
 --- app/design/adminhtml/default/default/layout/main.xml
 +++ app/design/adminhtml/default/default/layout/main.xml
-@@ -170,9 +170,10 @@ Layout for editor element
+@@ -167,9 +167,10 @@ Layout for editor element
              <action method="setCanLoadExtJs"><flag>1</flag></action>
              <action method="addJs"><script>mage/adminhtml/variables.js</script></action>
              <action method="addJs"><script>mage/adminhtml/wysiwyg/widget.js</script></action>
@@ -5870,7 +5734,7 @@ index f3ce2d9..99f2096 100644
              <action method="addJs"><script>prototype/window.js</script></action>
              <action method="addItem"><type>js_css</type><name>prototype/windows/themes/default.css</name></action>
 diff --git app/design/adminhtml/default/default/layout/xmlconnect.xml app/design/adminhtml/default/default/layout/xmlconnect.xml
-index 9ae04dc..18063f9 100644
+index 3bdea0a..fecec8c 100644
 --- app/design/adminhtml/default/default/layout/xmlconnect.xml
 +++ app/design/adminhtml/default/default/layout/xmlconnect.xml
 @@ -74,9 +74,10 @@
@@ -5888,7 +5752,7 @@ index 9ae04dc..18063f9 100644
              <action method="addJs"><script>prototype/window.js</script></action>
              <action method="addItem"><type>js_css</type><name>prototype/windows/themes/default.css</name></action>
 diff --git app/design/adminhtml/default/default/template/catalog/product/helper/gallery.phtml app/design/adminhtml/default/default/template/catalog/product/helper/gallery.phtml
-index a7640c8..ffe0c33 100644
+index a9a6b6f..7e9bedf 100644
 --- app/design/adminhtml/default/default/template/catalog/product/helper/gallery.phtml
 +++ app/design/adminhtml/default/default/template/catalog/product/helper/gallery.phtml
 @@ -108,6 +108,7 @@ $_block = $this;
@@ -5908,10 +5772,10 @@ index a7640c8..ffe0c33 100644
  //]]>
  </script>
 diff --git app/design/adminhtml/default/default/template/cms/browser/content/uploader.phtml app/design/adminhtml/default/default/template/cms/browser/content/uploader.phtml
-index d3b5a96..7480f752 100644
+index 3f9cb77..94a08d6 100644
 --- app/design/adminhtml/default/default/template/cms/browser/content/uploader.phtml
 +++ app/design/adminhtml/default/default/template/cms/browser/content/uploader.phtml
-@@ -24,48 +24,8 @@
+@@ -24,51 +24,8 @@
   * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
   */
  ?>
@@ -5922,6 +5786,9 @@ index d3b5a96..7480f752 100644
 - * @see Mage_Adminhtml_Block_Cms_Wysiwyg_Images_Content_Uploader
 - */
 -?>
+-
+-<?php echo $this->helper('adminhtml/media_js')->getTranslatorScript() ?>
+-
 -<div id="<?php echo $this->getHtmlId() ?>" class="uploader">
 -    <div class="buttons">
 -        <div id="<?php echo $this->getHtmlId() ?>-install-flash" style="display:none">
@@ -5962,7 +5829,7 @@ index d3b5a96..7480f752 100644
  //]]>
  </script>
 diff --git app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable.phtml app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable.phtml
-index e2f150b..20c3689 100644
+index 0fa8851..1618923 100644
 --- app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable.phtml
 +++ app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable.phtml
 @@ -34,19 +34,16 @@
@@ -6072,7 +5939,7 @@ index e2f150b..20c3689 100644
          this.updateFiles();
      },
 diff --git app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/links.phtml app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/links.phtml
-index ab3238e..597fb7d 100644
+index caf70a6..6731d62 100644
 --- app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/links.phtml
 +++ app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/links.phtml
 @@ -28,6 +28,7 @@
@@ -6163,7 +6030,7 @@ index ab3238e..597fb7d 100644
  
          linkFile = $('downloadable_link_'+data.id+'_file_type');
 diff --git app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/samples.phtml app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/samples.phtml
-index b9cdcfa..0b6b890 100644
+index 3116693..8d2eeb6 100644
 --- app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/samples.phtml
 +++ app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/samples.phtml
 @@ -27,6 +27,7 @@
@@ -6218,10 +6085,10 @@ index b9cdcfa..0b6b890 100644
          sampleUrl.advaiceContainer = 'downloadable_sample_'+data.id+'_container';
          sampleFile = $('downloadable_sample_'+data.id+'_file_type');
 diff --git app/design/adminhtml/default/default/template/media/uploader.phtml app/design/adminhtml/default/default/template/media/uploader.phtml
-index 923a220..8dba02f 100644
+index 04ca285..d8db109 100644
 --- app/design/adminhtml/default/default/template/media/uploader.phtml
 +++ app/design/adminhtml/default/default/template/media/uploader.phtml
-@@ -26,48 +26,30 @@
+@@ -26,50 +26,30 @@
  ?>
  <?php
  /**
@@ -6230,9 +6097,11 @@ index 923a220..8dba02f 100644
   */
  ?>
 -
--<?php echo $this->helper('adminhtml/js')->includeScript('lib/flex.js') ?>
--<?php echo $this->helper('adminhtml/js')->includeScript('mage/adminhtml/flexuploader.js') ?>
--<?php echo $this->helper('adminhtml/js')->includeScript('lib/FABridge.js') ?>
+-<?php echo $this->helper('adminhtml/media_js')->includeScript('lib/flex.js') ?>
+-<?php echo $this->helper('adminhtml/media_js')->includeScript('mage/adminhtml/flexuploader.js') ?>
+-<?php echo $this->helper('adminhtml/media_js')->includeScript('lib/FABridge.js') ?>
+-<?php echo $this->helper('adminhtml/media_js')->getTranslatorScript() ?>
+-
 -
  <div id="<?php echo $this->getHtmlId() ?>" class="uploader">
 -    <div class="buttons">
@@ -6286,7 +6155,7 @@ index 923a220..8dba02f 100644
  </script>
 +<?php echo $this->getChildHtml('additional_scripts'); ?>
 diff --git app/design/frontend/base/default/template/catalog/product/view.phtml app/design/frontend/base/default/template/catalog/product/view.phtml
-index 5d9212f..fc34321 100644
+index 4ca4fae..f495089 100644
 --- app/design/frontend/base/default/template/catalog/product/view.phtml
 +++ app/design/frontend/base/default/template/catalog/product/view.phtml
 @@ -40,6 +40,7 @@
@@ -6298,7 +6167,7 @@ index 5d9212f..fc34321 100644
              <input type="hidden" name="product" value="<?php echo $_product->getId() ?>" />
              <input type="hidden" name="related_product" id="related-products-field" value="" />
 diff --git app/design/frontend/base/default/template/checkout/cart.phtml app/design/frontend/base/default/template/checkout/cart.phtml
-index 7baafce..8cba100 100644
+index 0cae4b4..b8ad267 100644
 --- app/design/frontend/base/default/template/checkout/cart.phtml
 +++ app/design/frontend/base/default/template/checkout/cart.phtml
 @@ -47,6 +47,7 @@
@@ -6310,7 +6179,7 @@ index 7baafce..8cba100 100644
              <table id="shopping-cart-table" class="data-table cart-table">
                  <col width="1" />
 diff --git app/design/frontend/base/default/template/checkout/onepage/review/info.phtml app/design/frontend/base/default/template/checkout/onepage/review/info.phtml
-index d98d00f..6336137 100644
+index 808ae43..2bac9fb 100644
 --- app/design/frontend/base/default/template/checkout/onepage/review/info.phtml
 +++ app/design/frontend/base/default/template/checkout/onepage/review/info.phtml
 @@ -78,7 +78,7 @@
@@ -6323,19 +6192,45 @@ index d98d00f..6336137 100644
      </script>
  </div>
 diff --git app/design/frontend/base/default/template/customer/form/login.phtml app/design/frontend/base/default/template/customer/form/login.phtml
-index dfb8245..fd3ceb9 100644
+index 8a50ccb..7b29491 100644
 --- app/design/frontend/base/default/template/customer/form/login.phtml
 +++ app/design/frontend/base/default/template/customer/form/login.phtml
-@@ -39,6 +39,7 @@
-     <?php /* Extensions placeholder */ ?>
-     <?php echo $this->getChildHtml('customer.form.login.extra')?>
+@@ -37,6 +37,7 @@
+     </div>
+     <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
      <form action="<?php echo $this->getPostActionUrl() ?>" method="post" id="login-form">
 +        <?php echo $this->getBlockHtml('formkey'); ?>
          <div class="col2-set">
              <div class="col-1 new-users">
                  <div class="content">
+diff --git app/design/frontend/base/default/template/email/productalert/price.phtml app/design/frontend/base/default/template/email/productalert/price.phtml
+index 5cef986..181bf8c 100644
+--- app/design/frontend/base/default/template/email/productalert/price.phtml
++++ app/design/frontend/base/default/template/email/productalert/price.phtml
+@@ -32,7 +32,7 @@
+         <td><a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->htmlEscape($_product->getName()) ?>"><img src="<?php echo $_product->getThumbnailUrl() ?>" border="0" align="left" height="75" width="75" alt="<?php echo $this->htmlEscape($_product->getName()) ?>" /></a></td>
+         <td>
+             <p><a href="<?php echo $_product->getProductUrl() ?>"><strong><?php echo $this->htmlEscape($_product->getName()) ?></strong></a></p>
+-            <?php if ($shortDescription = $this->htmlEscape($_product->getShortDescription())): ?>
++            <?php if ($shortDescription = $this->_getFilteredProductShortDescription($product)): ?>
+             <p><small><?php echo $shortDescription ?></small></p>
+             <?php endif; ?>
+             <p><?php if ($_product->getPrice() != $_product->getFinalPrice()): ?>
+diff --git app/design/frontend/base/default/template/email/productalert/stock.phtml app/design/frontend/base/default/template/email/productalert/stock.phtml
+index d628c85..4c0fd2c 100644
+--- app/design/frontend/base/default/template/email/productalert/stock.phtml
++++ app/design/frontend/base/default/template/email/productalert/stock.phtml
+@@ -32,7 +32,7 @@
+         <td><a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->htmlEscape($_product->getName()) ?>"><img src="<?php echo $this->helper('catalog/image')->init($_product, 'thumbnail')->resize(75, 75) ?>" border="0" align="left" height="75" width="75" alt="<?php echo $this->htmlEscape($_product->getName()) ?>" /></a></td>
+         <td>
+             <p><a href="<?php echo $_product->getProductUrl() ?>"><strong><?php echo $this->htmlEscape($_product->getName()) ?></strong></a></p>
+-            <?php if ($shortDescription = $this->htmlEscape($_product->getShortDescription())): ?>
++            <?php if ($shortDescription = $this->_getFilteredProductShortDescription($product)): ?>
+             <p><small><?php echo $shortDescription ?></small></p>
+             <?php endif; ?>
+             <p><?php if ($_product->getPrice() != $_product->getFinalPrice()): ?>
 diff --git app/design/frontend/base/default/template/persistent/customer/form/login.phtml app/design/frontend/base/default/template/persistent/customer/form/login.phtml
-index 622620f..b178d4b 100644
+index 3786a88..9c1b563 100644
 --- app/design/frontend/base/default/template/persistent/customer/form/login.phtml
 +++ app/design/frontend/base/default/template/persistent/customer/form/login.phtml
 @@ -38,6 +38,7 @@
@@ -6347,7 +6242,7 @@ index 622620f..b178d4b 100644
              <div class="col-1 new-users">
                  <div class="content">
 diff --git app/design/frontend/base/default/template/review/form.phtml app/design/frontend/base/default/template/review/form.phtml
-index 6b9024a..82f966c 100644
+index 5534a78..ca008ec 100644
 --- app/design/frontend/base/default/template/review/form.phtml
 +++ app/design/frontend/base/default/template/review/form.phtml
 @@ -28,6 +28,7 @@
@@ -6359,7 +6254,7 @@ index 6b9024a..82f966c 100644
              <?php echo $this->getChildHtml('form_fields_before')?>
              <h3><?php echo $this->__("You're reviewing:"); ?> <span><?php echo $this->htmlEscape($this->getProductInfo()->getName()) ?></span></h3>
 diff --git app/design/frontend/base/default/template/sales/reorder/sidebar.phtml app/design/frontend/base/default/template/sales/reorder/sidebar.phtml
-index 8d3490f..65c0329 100644
+index 2fdf176..0c1add2 100644
 --- app/design/frontend/base/default/template/sales/reorder/sidebar.phtml
 +++ app/design/frontend/base/default/template/sales/reorder/sidebar.phtml
 @@ -38,6 +38,7 @@
@@ -6371,7 +6266,7 @@ index 8d3490f..65c0329 100644
              <p class="block-subtitle"><?php echo $this->__('Last Ordered Items') ?></p>
              <ol id="cart-sidebar-reorder">
 diff --git app/design/frontend/base/default/template/tag/customer/view.phtml app/design/frontend/base/default/template/tag/customer/view.phtml
-index 23d7809..e8d2a3a 100644
+index 9ad6090..133f7bf 100644
 --- app/design/frontend/base/default/template/tag/customer/view.phtml
 +++ app/design/frontend/base/default/template/tag/customer/view.phtml
 @@ -52,7 +52,9 @@
@@ -6386,146 +6281,148 @@ index 23d7809..e8d2a3a 100644
                  <?php if ($this->helper('wishlist')->isAllow()) : ?>
                  <ul class="add-to-links">
 diff --git app/design/frontend/base/default/template/wishlist/view.phtml app/design/frontend/base/default/template/wishlist/view.phtml
-index dfc4ecf..6a0dd23 100644
+index 31ec343..c071d1d 100644
 --- app/design/frontend/base/default/template/wishlist/view.phtml
 +++ app/design/frontend/base/default/template/wishlist/view.phtml
-@@ -52,20 +52,36 @@
-             </fieldset>
-         </form>
+@@ -107,8 +107,17 @@
+     <?php else: ?>
+         <p><?php echo $this->__('You have no items in your wishlist.') ?></p>
+     <?php endif ?>
++
++    <form id="wishlist-allcart-form" action="<?php echo $this->getUrl('*/*/allcart') ?>" method="post">
++        <?php echo $this->getBlockHtml('formkey') ?>
++        <div class="no-display">
++            <input type="hidden" name="qty" id="qty" value="" />
++        </div>
++    </form>
+     <script type="text/javascript">
+     //<![CDATA[
++    var wishlistAllCartForm = new Validation($('wishlist-allcart-form'));
++
+     function confirmRemoveWishlistItem() {
+         return confirm('<?php echo $this->__('Are you sure you want to remove this product from your wishlist?') ?>');
+     }
+@@ -135,16 +144,22 @@
+         setLocation(url);
+     }
  
-+        <form id="wishlist-allcart-form" action="<?php echo $this->getUrl('*/*/allcart') ?>" method="post">
-+            <?php echo $this->getBlockHtml('formkey') ?>
-+            <div class="no-display">
-+                <input type="hidden" name="wishlist_id" id="wishlist_id" value="<?php echo $this->getWishlistInstance()->getId() ?>" />
-+                <input type="hidden" name="qty" id="qty" value="" />
-+            </div>
-+        </form>
+-    function addAllWItemsToCart() {
+-        var url = '<?php echo $this->getUrl('*/*/allcart') ?>';
+-        var separator = (url.indexOf('?') >= 0) ? '&' : '?';
++    function calculateQty() {
++        var itemQtys = new Array();
+         $$('#wishlist-view-form .qty').each(
+             function (input, index) {
+-                url += separator + input.name + '=' + encodeURIComponent(input.value);
+-                separator = '&';
++                var idxStr = input.name;
++                var idx = idxStr.replace( /[^\d.]/g, '' );
++                itemQtys[idx] = input.value;
+             }
+         );
+-        setLocation(url);
 +
-         <script type="text/javascript">
-         //<![CDATA[
--        var wishlistForm = new Validation($('wishlist-view-form'));
--        function addAllWItemsToCart() {
--            var url = '<?php echo $this->getUrl('*/*/allcart', array('wishlist_id' => $this->getWishlistInstance()->getId())) ?>';
--            var separator = (url.indexOf('?') >= 0) ? '&' : '?';
--            $$('#wishlist-view-form .qty').each(
--                function (input, index) {
--                    url += separator + input.name + '=' + encodeURIComponent(input.value);
--                    separator = '&';
--                }
--            );
--            setLocation(url);
--        }
-+            var wishlistForm = new Validation($('wishlist-view-form'));
-+            var wishlistAllCartForm = new Validation($('wishlist-allcart-form'));
++        $$('#qty')[0].value = JSON.stringify(itemQtys);
++    }
 +
-+            function calculateQty() {
-+                var itemQtys = new Array();
-+                $$('#wishlist-view-form .qty').each(
-+                    function (input, index) {
-+                        var idxStr = input.name;
-+                        var idx = idxStr.replace( /[^\d.]/g, '' );
-+                        itemQtys[idx] = input.value;
-+                    }
-+                );
-+
-+                $$('#qty')[0].value = JSON.stringify(itemQtys);
-+            }
-+
-+            function addAllWItemsToCart() {
-+                calculateQty();
-+                wishlistAllCartForm.form.submit();
-+            }
-         //]]>
-         </script>
-     </div>
++    function addAllWItemsToCart() {
++        calculateQty();
++        wishlistAllCartForm.form.submit();
+     }
+     //]]>
+     </script>
 diff --git app/design/frontend/default/iphone/template/checkout/cart.phtml app/design/frontend/default/iphone/template/checkout/cart.phtml
-index 567c88f..2bcf244 100644
+index 2a4fa1e..af833bd 100644
 --- app/design/frontend/default/iphone/template/checkout/cart.phtml
 +++ app/design/frontend/default/iphone/template/checkout/cart.phtml
-@@ -45,6 +45,7 @@
-         </ul>
-     <?php endif; ?>
+@@ -38,6 +38,7 @@
+     <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+     <?php echo $this->getChildHtml('form_before') ?>
      <form action="<?php echo $this->getUrl('checkout/cart/updatePost') ?>" method="post">
 +        <?php echo $this->getBlockHtml('formkey') ?>
          <fieldset>
              <table id="shopping-cart-table" class="data-table cart-table">
-                 <tfoot>
+             <?php if ($this->helper('tax')->displayCartPriceExclTax() || $this->helper('tax')->displayCartBothPrices()): ?>
 diff --git app/design/frontend/default/iphone/template/customer/form/login.phtml app/design/frontend/default/iphone/template/customer/form/login.phtml
-index a6d2ac1..7d61c3b 100644
+index 199270c..53d3dda 100644
 --- app/design/frontend/default/iphone/template/customer/form/login.phtml
 +++ app/design/frontend/default/iphone/template/customer/form/login.phtml
-@@ -39,6 +39,7 @@
-     <?php /* Extensions placeholder */ ?>
-     <?php echo $this->getChildHtml('customer.form.login.extra')?>
-     <form action="<?php echo $this->getPostActionUrl() ?>" method="post" id="login-form">
-+        <?php echo $this->getBlockHtml('formkey') ?>
-         <div class="col2-set">
-             <div class="col-1 registered-users">
-                 <div class="content">
-diff --git app/design/frontend/default/iphone/template/persistent/customer/form/login.phtml app/design/frontend/default/iphone/template/persistent/customer/form/login.phtml
-index 5decee9..871f998 100644
---- app/design/frontend/default/iphone/template/persistent/customer/form/login.phtml
-+++ app/design/frontend/default/iphone/template/persistent/customer/form/login.phtml
-@@ -38,6 +38,7 @@
-     </div>
+@@ -34,6 +34,7 @@
+ <div class="account-login">
      <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
      <form action="<?php echo $this->getPostActionUrl() ?>" method="post" id="login-form">
 +        <?php echo $this->getBlockHtml('formkey') ?>
-         <div class="col2-set">
-             <div class="col-1 registered-users">
-                 <div class="content">
+         <div class="registered-users">
+             <h1><?php echo $this->__('Registered Customers') ?></h1>
+             <ul class="form-list">
+diff --git app/design/frontend/default/iphone/template/persistent/customer/form/login.phtml app/design/frontend/default/iphone/template/persistent/customer/form/login.phtml
+index ebbf0d8..cc59256 100644
+--- app/design/frontend/default/iphone/template/persistent/customer/form/login.phtml
++++ app/design/frontend/default/iphone/template/persistent/customer/form/login.phtml
+@@ -35,6 +35,7 @@
+ <div class="account-login">
+     <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+     <form action="<?php echo $this->getPostActionUrl() ?>" method="post" id="login-form">
++        <?php echo $this->getBlockHtml('formkey') ?>
+         <div class="registered-users">
+             <h1><?php echo $this->__('Registered Customers') ?></h1>
+             <ul class="form-list">
 diff --git app/design/frontend/default/iphone/template/wishlist/view.phtml app/design/frontend/default/iphone/template/wishlist/view.phtml
-index f2a27fd..550e860 100644
+index 10e10d8..81e7a74 100644
 --- app/design/frontend/default/iphone/template/wishlist/view.phtml
 +++ app/design/frontend/default/iphone/template/wishlist/view.phtml
-@@ -48,20 +48,36 @@
-             </fieldset>
-         </form>
+@@ -96,8 +96,17 @@
+     <?php else: ?>
+         <p><?php echo $this->__('You have no items in your wishlist.') ?></p>
+     <?php endif ?>
++
++    <form id="wishlist-allcart-form" action="<?php echo $this->getUrl('*/*/allcart') ?>" method="post">
++        <?php echo $this->getBlockHtml('formkey') ?>
++        <div class="no-display">
++            <input type="hidden" name="qty" id="qty" value="" />
++        </div>
++    </form>
+     <script type="text/javascript">
+     //<![CDATA[
++    var wishlistAllCartForm = new Validation($('wishlist-allcart-form'));
++
+     function confirmRemoveWishlistItem() {
+         return confirm('<?php echo $this->__('Are you sure you want to remove this product from your wishlist?') ?>');
+     }
+@@ -124,16 +133,22 @@
+         setLocation(url);
+     }
  
-+        <form id="wishlist-allcart-form" action="<?php echo $this->getUrl('*/*/allcart') ?>" method="post">
-+            <?php echo $this->getBlockHtml('formkey') ?>
-+            <div class="no-display">
-+                <input type="hidden" name="wishlist_id" id="wishlist_id" value="<?php echo $this->getWishlistInstance()->getId() ?>" />
-+                <input type="hidden" name="qty" id="qty" value="" />
-+            </div>
-+        </form>
+-    function addAllWItemsToCart() {
+-        var url = '<?php echo $this->getUrl('*/*/allcart') ?>';
+-        var separator = (url.indexOf('?') >= 0) ? '&' : '?';
++    function calculateQty() {
++        var itemQtys = new Array();
+         $$('#wishlist-view-form .qty').each(
+             function (input, index) {
+-                url += separator + input.name + '=' + encodeURIComponent(input.value);
+-                separator = '&';
++                var idxStr = input.name;
++                var idx = idxStr.replace( /[^\d.]/g, '' );
++                itemQtys[idx] = input.value;
+             }
+         );
+-        setLocation(url);
 +
-         <script type="text/javascript">
-         //<![CDATA[
-         var wishlistForm = new Validation($('wishlist-view-form'));
--        function addAllWItemsToCart() {
--            var url = '<?php echo $this->getUrl('*/*/allcart', array('wishlist_id' => $this->getWishlistInstance()->getId())) ?>';
--            var separator = (url.indexOf('?') >= 0) ? '&' : '?';
-+            var wishlistAllCartForm = new Validation($('wishlist-allcart-form'));
++        $$('#qty')[0].value = JSON.stringify(itemQtys);
++    }
 +
-+            function calculateQty() {
-+                var itemQtys = new Array();
-             $$('#wishlist-view-form .qty').each(
-                 function (input, index) {
--                    url += separator + input.name + '=' + encodeURIComponent(input.value);
--                    separator = '&';
-+                        var idxStr = input.name;
-+                        var idx = idxStr.replace( /[^\d.]/g, '' );
-+                        itemQtys[idx] = input.value;
-                 }
-             );
--            setLocation(url);
-+
-+                $$('#qty')[0].value = JSON.stringify(itemQtys);
-         }
-+
-+            function addAllWItemsToCart() {
-+                calculateQty();
-+                wishlistAllCartForm.form.submit();
-+            }
-         //]]>
-         </script>
-     </div>
++    function addAllWItemsToCart() {
++        calculateQty();
++        wishlistAllCartForm.form.submit();
+     }
+     //]]>
+     </script>
 diff --git app/etc/modules/Mage_All.xml app/etc/modules/Mage_All.xml
-index 34d0b98..7a47a0c 100644
+index ca610ae..f724a77 100644
 --- app/etc/modules/Mage_All.xml
 +++ app/etc/modules/Mage_All.xml
-@@ -275,7 +275,7 @@
+@@ -274,7 +274,7 @@
              <active>true</active>
              <codePool>core</codePool>
              <depends>
@@ -6534,7 +6431,7 @@ index 34d0b98..7a47a0c 100644
              </depends>
          </Mage_Cms>
          <Mage_Reports>
-@@ -397,5 +397,12 @@
+@@ -396,5 +396,12 @@
                  <Mage_Core/>
              </depends>
          </Mage_Index>
@@ -6571,7 +6468,7 @@ index 0000000..c246b24
 +"Complete","Complete"
 \ No newline at end of file
 diff --git downloader/Maged/Controller.php downloader/Maged/Controller.php
-index a5a6aa8..88839f5 100755
+index 11d6f0e..c03ab49b 100755
 --- downloader/Maged/Controller.php
 +++ downloader/Maged/Controller.php
 @@ -367,6 +367,11 @@ final class Maged_Controller
@@ -6586,9 +6483,9 @@ index a5a6aa8..88839f5 100755
          if (!$_FILES) {
              echo "No file was uploaded";
              return;
-@@ -1090,4 +1095,27 @@ final class Maged_Controller
- 
-         return $messagesMap[$type];
+@@ -974,4 +979,27 @@ final class Maged_Controller
+             'number'    => '',
+         );
      }
 +
 +    /**
@@ -6615,7 +6512,7 @@ index a5a6aa8..88839f5 100755
 +    }
  }
 diff --git downloader/Maged/Model/Session.php downloader/Maged/Model/Session.php
-index 303efbb..ce9b584 100644
+index 138f6a3..26ab58d 100644
 --- downloader/Maged/Model/Session.php
 +++ downloader/Maged/Model/Session.php
 @@ -221,4 +221,17 @@ class Maged_Model_Session extends Maged_Model
@@ -6637,7 +6534,7 @@ index 303efbb..ce9b584 100644
 +    }
  }
 diff --git downloader/Maged/View.php downloader/Maged/View.php
-index 548de0f..a80357b 100755
+index a2c8584..175fa6f 100755
 --- downloader/Maged/View.php
 +++ downloader/Maged/View.php
 @@ -154,6 +154,16 @@ class Maged_View
@@ -6658,25 +6555,25 @@ index 548de0f..a80357b 100755
       *
       * @param   mixed $data
 diff --git downloader/lib/Mage/HTTP/Client/Curl.php downloader/lib/Mage/HTTP/Client/Curl.php
-index 7ac2d0c..f481b2d5 100644
+index a8dc462..72a80d7 100644
 --- downloader/lib/Mage/HTTP/Client/Curl.php
 +++ downloader/lib/Mage/HTTP/Client/Curl.php
-@@ -378,8 +378,8 @@ implements Mage_HTTP_IClient
-         }
- 
-         $this->curlOption(CURLOPT_URL, $uri);
--        $this->curlOption(CURLOPT_SSL_VERIFYPEER, FALSE);
+@@ -372,8 +372,8 @@ implements Mage_HTTP_IClient
+         $uriModified = $this->getSecureRequest($uri, $isAuthorizationRequired);
+         $this->_ch = curl_init();
+         $this->curlOption(CURLOPT_URL, $uriModified);
+-        $this->curlOption(CURLOPT_SSL_VERIFYPEER, false);
 -        $this->curlOption(CURLOPT_SSL_VERIFYHOST, 2);
 +        $this->curlOption(CURLOPT_SSL_VERIFYPEER, true);
 +        $this->curlOption(CURLOPT_SSL_VERIFYHOST, 'TLSv1');
+         $this->getCurlMethodSettings($method, $params, $isAuthorizationRequired);
  
-         // force method to POST if secured
-         if ($isAuthorizationRequired) {
+         if(count($this->_headers)) {
 diff --git downloader/template/connect/packages.phtml downloader/template/connect/packages.phtml
-index 92e6ea8..998e1d9 100644
+index 459feb0..40c31ce 100644
 --- downloader/template/connect/packages.phtml
 +++ downloader/template/connect/packages.phtml
-@@ -143,6 +143,7 @@ function connectPrepare(form) {
+@@ -101,6 +101,7 @@
      <h4>Direct package file upload</h4>
  </div>
  <form action="<?php echo $this->url('connectInstallPackageUpload')?>" method="post" target="connect_iframe" onsubmit="onSubmit(this)" enctype="multipart/form-data">
@@ -7148,7 +7045,7 @@ index 0000000..4519a81
 +  }
 +})(window.Flow, window, document);
 diff --git js/mage/adminhtml/product.js js/mage/adminhtml/product.js
-index 2ba1d51..ee0e7e7 100644
+index e6aae5f..07f3041 100644
 --- js/mage/adminhtml/product.js
 +++ js/mage/adminhtml/product.js
 @@ -34,18 +34,18 @@ Product.Gallery.prototype = {
@@ -7711,8 +7608,121 @@ index 0000000..483b2af
 +        }
 +    });
 +})(fustyFlowFactory, window, document);
+diff --git lib/Unserialize/Parser.php lib/Unserialize/Parser.php
+index 423902a..2c01684 100644
+--- lib/Unserialize/Parser.php
++++ lib/Unserialize/Parser.php
+@@ -34,6 +34,7 @@ class Unserialize_Parser
+     const TYPE_DOUBLE = 'd';
+     const TYPE_ARRAY = 'a';
+     const TYPE_BOOL = 'b';
++    const TYPE_NULL = 'N';
+ 
+     const SYMBOL_QUOTE = '"';
+     const SYMBOL_SEMICOLON = ';';
+diff --git lib/Unserialize/Reader/Arr.php lib/Unserialize/Reader/Arr.php
+index caa979e..cd37804 100644
+--- lib/Unserialize/Reader/Arr.php
++++ lib/Unserialize/Reader/Arr.php
+@@ -101,7 +101,10 @@ class Unserialize_Reader_Arr
+         if ($this->_status == self::READING_VALUE) {
+             $value = $this->_reader->read($char, $prevChar);
+             if (!is_null($value)) {
+-                $this->_result[$this->_reader->key] = $value;
++                $this->_result[$this->_reader->key] =
++                    ($value == Unserialize_Reader_Null::NULL_VALUE && $prevChar == Unserialize_Parser::TYPE_NULL)
++                        ? null
++                        : $value;
+                 if (count($this->_result) < $this->_length) {
+                     $this->_reader = new Unserialize_Reader_ArrKey();
+                     $this->_status = self::READING_KEY;
+diff --git lib/Unserialize/Reader/ArrValue.php lib/Unserialize/Reader/ArrValue.php
+index d2a4937..c6c0221 100644
+--- lib/Unserialize/Reader/ArrValue.php
++++ lib/Unserialize/Reader/ArrValue.php
+@@ -84,6 +84,10 @@ class Unserialize_Reader_ArrValue
+                     $this->_reader = new Unserialize_Reader_Dbl();
+                     $this->_status = self::READING_VALUE;
+                     break;
++                case Unserialize_Parser::TYPE_NULL:
++                    $this->_reader = new Unserialize_Reader_Null();
++                    $this->_status = self::READING_VALUE;
++                    break;
+                 default:
+                     throw new Exception('Unsupported data type ' . $char);
+             }
+diff --git lib/Unserialize/Reader/Null.php lib/Unserialize/Reader/Null.php
+new file mode 100644
+index 0000000..93c7e0b
+--- /dev/null
++++ lib/Unserialize/Reader/Null.php
+@@ -0,0 +1,64 @@
++<?php
++/**
++ * Magento
++ *
++ * NOTICE OF LICENSE
++ *
++ * This source file is subject to the Open Software License (OSL 3.0)
++ * that is bundled with this package in the file LICENSE.txt.
++ * It is also available through the world-wide-web at this URL:
++ * http://opensource.org/licenses/osl-3.0.php
++ * If you did not receive a copy of the license and are unable to
++ * obtain it through the world-wide-web, please send an email
++ * to license@magento.com so we can send you a copy immediately.
++ *
++ * DISCLAIMER
++ *
++ * Do not edit or add to this file if you wish to upgrade Magento to newer
++ * versions in the future. If you wish to customize Magento for your
++ * needs please refer to http://www.magento.com for more information.
++ *
++ * @category    Unserialize
++ * @package     Unserialize_Reader_Null
++ * @copyright  Copyright (c) 2006-2016 X.commerce, Inc. and affiliates (http://www.magento.com)
++ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
++ */
++
++/**
++ * Class Unserialize_Reader_Null
++ */
++class Unserialize_Reader_Null
++{
++    /**
++     * @var int
++     */
++    protected $_status;
++
++    /**
++     * @var string
++     */
++    protected $_value;
++
++    const NULL_VALUE = 'null';
++
++    const READING_VALUE = 1;
++
++    /**
++     * @param string $char
++     * @param string $prevChar
++     * @return string|null
++     */
++    public function read($char, $prevChar)
++    {
++        if ($prevChar == Unserialize_Parser::SYMBOL_SEMICOLON) {
++            $this->_value = self::NULL_VALUE;
++            $this->_status = self::READING_VALUE;
++            return null;
++        }
++
++        if ($this->_status == self::READING_VALUE && $char == Unserialize_Parser::SYMBOL_SEMICOLON) {
++            return $this->_value;
++        }
++        return null;
++    }
++}
 diff --git skin/adminhtml/default/default/boxes.css skin/adminhtml/default/default/boxes.css
-index 8a1af12..33acc81 100644
+index 22478d0..ce7cb41 100644
 --- skin/adminhtml/default/default/boxes.css
 +++ skin/adminhtml/default/default/boxes.css
 @@ -76,7 +76,7 @@
@@ -7724,7 +7734,7 @@ index 8a1af12..33acc81 100644
      position:absolute;
      color:#d85909;
      font-size:1.1em;
-@@ -1393,8 +1393,6 @@ ul.super-product-attributes { padding-left:15px; }
+@@ -1258,8 +1258,6 @@ ul.super-product-attributes { padding-left:15px; }
  .uploader .file-row-info .file-info-name  { font-weight:bold; }
  .uploader .file-row .progress-text { float:right; font-weight:bold; }
  .uploader .file-row .delete-button { float:right; }

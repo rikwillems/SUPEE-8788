@@ -157,9 +157,22 @@ echo -e "$APPLIED_REVERTED_PATCH_INFO\n$PATCH_APPLY_REVERT_RESULT\n\n" >> "$APPL
 exit 0
 
 
-SUPEE-8788 | CE_1.5.0.1 | v1 | 51c3e3ded0aba01bbc8f53f90eb3a34386a77593 | Thu Sep 8 14:47:56 2016 +0300 | c39f31839f..51c3e3ded0
+SUPEE-8788 | CE_1.5.0.1 | v2 | 156f0cc1c24a820b16f4c057b932eb57a73d26e4 | Fri Oct 14 19:32:49 2016 +0300 | c37b3855115939e372bd0a3396945e4c386aaba0
 
 __PATCHFILE_FOLLOWS__
+diff --git app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php
+index 877f7f7..c8bf6b8 100644
+--- app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php
++++ app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php
+@@ -339,7 +339,7 @@ class Mage_Adminhtml_Block_Dashboard_Graph extends Mage_Adminhtml_Block_Dashboar
+             }
+             return self::API_URL . '?' . implode('&', $p);
+         } else {
+-            $gaData = urlencode(base64_encode(serialize($params)));
++            $gaData = urlencode(base64_encode(json_encode($params)));
+             $gaHash = Mage::helper('adminhtml/dashboard_data')->getChartDataHash($gaData);
+             $params = array('ga' => $gaData, 'h' => $gaHash);
+             return $this->getUrl('*/*/tunnel', array('_query' => $params));
 diff --git app/code/core/Mage/Adminhtml/Block/Media/Uploader.php app/code/core/Mage/Adminhtml/Block/Media/Uploader.php
 index 42d2f63..5918d7a 100644
 --- app/code/core/Mage/Adminhtml/Block/Media/Uploader.php
@@ -243,18 +256,21 @@ index 2025105..6373b5c 100644
      }
  
 diff --git app/code/core/Mage/Adminhtml/controllers/DashboardController.php app/code/core/Mage/Adminhtml/controllers/DashboardController.php
-index 722ffb0..6183369 100644
+index 722ffb0..47b20d5 100644
 --- app/code/core/Mage/Adminhtml/controllers/DashboardController.php
 +++ app/code/core/Mage/Adminhtml/controllers/DashboardController.php
-@@ -76,7 +76,7 @@ class Mage_Adminhtml_DashboardController extends Mage_Adminhtml_Controller_Actio
+@@ -76,8 +76,9 @@ class Mage_Adminhtml_DashboardController extends Mage_Adminhtml_Controller_Actio
          $gaHash = $this->getRequest()->getParam('h');
          if ($gaData && $gaHash) {
              $newHash = Mage::helper('adminhtml/dashboard_data')->getChartDataHash($gaData);
 -            if ($newHash == $gaHash) {
+-                if ($params = unserialize(base64_decode(urldecode($gaData)))) {
 +            if (hash_equals($newHash, $gaHash)) {
-                 if ($params = unserialize(base64_decode(urldecode($gaData)))) {
++                $params = json_decode(base64_decode(urldecode($gaData)), true);
++                if ($params) {
                      $response = $httpClient->setUri(Mage_Adminhtml_Block_Dashboard_Graph::API_URL)
                              ->setParameterGet($params)
+                             ->setConfig(array('timeout' => 5))
 diff --git app/code/core/Mage/Catalog/Block/Product/Abstract.php app/code/core/Mage/Catalog/Block/Product/Abstract.php
 index 434034d..8765242 100644
 --- app/code/core/Mage/Catalog/Block/Product/Abstract.php
@@ -2980,20 +2996,20 @@ index 0cf4fcd..739ce96 100755
       *
       * @param   mixed $data
 diff --git downloader/lib/Mage/HTTP/Client/Curl.php downloader/lib/Mage/HTTP/Client/Curl.php
-index 261d89f..03db753 100644
+index 37e1c1b..afaf282 100644
 --- downloader/lib/Mage/HTTP/Client/Curl.php
 +++ downloader/lib/Mage/HTTP/Client/Curl.php
-@@ -378,8 +378,8 @@ implements Mage_HTTP_IClient
-         }
- 
-         $this->curlOption(CURLOPT_URL, $uri);
--        $this->curlOption(CURLOPT_SSL_VERIFYPEER, FALSE);
+@@ -372,8 +372,8 @@ implements Mage_HTTP_IClient
+         $uriModified = $this->getSecureRequest($uri, $isAuthorizationRequired);
+         $this->_ch = curl_init();
+         $this->curlOption(CURLOPT_URL, $uriModified);
+-        $this->curlOption(CURLOPT_SSL_VERIFYPEER, false);
 -        $this->curlOption(CURLOPT_SSL_VERIFYHOST, 2);
 +        $this->curlOption(CURLOPT_SSL_VERIFYPEER, true);
 +        $this->curlOption(CURLOPT_SSL_VERIFYHOST, 'TLSv1');
+         $this->getCurlMethodSettings($method, $params, $isAuthorizationRequired);
  
-         // force method to POST if secured
-         if ($isAuthorizationRequired) {
+         if(count($this->_headers)) {
 diff --git downloader/template/connect/packages.phtml downloader/template/connect/packages.phtml
 index 770e78c..d8d18c6 100644
 --- downloader/template/connect/packages.phtml
@@ -3006,6 +3022,119 @@ index 770e78c..d8d18c6 100644
      <ul class="bare-list">
          <li><span class="step-count">1</span> &nbsp; Download or build package file.</li>
          <li>
+diff --git lib/Unserialize/Parser.php lib/Unserialize/Parser.php
+index 423902a..2c01684 100644
+--- lib/Unserialize/Parser.php
++++ lib/Unserialize/Parser.php
+@@ -34,6 +34,7 @@ class Unserialize_Parser
+     const TYPE_DOUBLE = 'd';
+     const TYPE_ARRAY = 'a';
+     const TYPE_BOOL = 'b';
++    const TYPE_NULL = 'N';
+ 
+     const SYMBOL_QUOTE = '"';
+     const SYMBOL_SEMICOLON = ';';
+diff --git lib/Unserialize/Reader/Arr.php lib/Unserialize/Reader/Arr.php
+index caa979e..cd37804 100644
+--- lib/Unserialize/Reader/Arr.php
++++ lib/Unserialize/Reader/Arr.php
+@@ -101,7 +101,10 @@ class Unserialize_Reader_Arr
+         if ($this->_status == self::READING_VALUE) {
+             $value = $this->_reader->read($char, $prevChar);
+             if (!is_null($value)) {
+-                $this->_result[$this->_reader->key] = $value;
++                $this->_result[$this->_reader->key] =
++                    ($value == Unserialize_Reader_Null::NULL_VALUE && $prevChar == Unserialize_Parser::TYPE_NULL)
++                        ? null
++                        : $value;
+                 if (count($this->_result) < $this->_length) {
+                     $this->_reader = new Unserialize_Reader_ArrKey();
+                     $this->_status = self::READING_KEY;
+diff --git lib/Unserialize/Reader/ArrValue.php lib/Unserialize/Reader/ArrValue.php
+index d2a4937..c6c0221 100644
+--- lib/Unserialize/Reader/ArrValue.php
++++ lib/Unserialize/Reader/ArrValue.php
+@@ -84,6 +84,10 @@ class Unserialize_Reader_ArrValue
+                     $this->_reader = new Unserialize_Reader_Dbl();
+                     $this->_status = self::READING_VALUE;
+                     break;
++                case Unserialize_Parser::TYPE_NULL:
++                    $this->_reader = new Unserialize_Reader_Null();
++                    $this->_status = self::READING_VALUE;
++                    break;
+                 default:
+                     throw new Exception('Unsupported data type ' . $char);
+             }
+diff --git lib/Unserialize/Reader/Null.php lib/Unserialize/Reader/Null.php
+new file mode 100644
+index 0000000..93c7e0b
+--- /dev/null
++++ lib/Unserialize/Reader/Null.php
+@@ -0,0 +1,64 @@
++<?php
++/**
++ * Magento
++ *
++ * NOTICE OF LICENSE
++ *
++ * This source file is subject to the Open Software License (OSL 3.0)
++ * that is bundled with this package in the file LICENSE.txt.
++ * It is also available through the world-wide-web at this URL:
++ * http://opensource.org/licenses/osl-3.0.php
++ * If you did not receive a copy of the license and are unable to
++ * obtain it through the world-wide-web, please send an email
++ * to license@magento.com so we can send you a copy immediately.
++ *
++ * DISCLAIMER
++ *
++ * Do not edit or add to this file if you wish to upgrade Magento to newer
++ * versions in the future. If you wish to customize Magento for your
++ * needs please refer to http://www.magento.com for more information.
++ *
++ * @category    Unserialize
++ * @package     Unserialize_Reader_Null
++ * @copyright  Copyright (c) 2006-2016 X.commerce, Inc. and affiliates (http://www.magento.com)
++ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
++ */
++
++/**
++ * Class Unserialize_Reader_Null
++ */
++class Unserialize_Reader_Null
++{
++    /**
++     * @var int
++     */
++    protected $_status;
++
++    /**
++     * @var string
++     */
++    protected $_value;
++
++    const NULL_VALUE = 'null';
++
++    const READING_VALUE = 1;
++
++    /**
++     * @param string $char
++     * @param string $prevChar
++     * @return string|null
++     */
++    public function read($char, $prevChar)
++    {
++        if ($prevChar == Unserialize_Parser::SYMBOL_SEMICOLON) {
++            $this->_value = self::NULL_VALUE;
++            $this->_status = self::READING_VALUE;
++            return null;
++        }
++
++        if ($this->_status == self::READING_VALUE && $char == Unserialize_Parser::SYMBOL_SEMICOLON) {
++            return $this->_value;
++        }
++        return null;
++    }
++}
 diff --git skin/adminhtml/default/default/media/uploader.swf skin/adminhtml/default/default/media/uploader.swf
 index 9d176a7..e38a5a5 100644
 --- skin/adminhtml/default/default/media/uploader.swf

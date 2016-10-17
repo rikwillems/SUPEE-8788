@@ -157,7 +157,7 @@ echo -e "$APPLIED_REVERTED_PATCH_INFO\n$PATCH_APPLY_REVERT_RESULT\n\n" >> "$APPL
 exit 0
 
 
-SUPEE-8788 | CE_1.9.2.0 | v1 | c6dba16160a24b60321b53722c426ff37470c632 | Thu Sep 8 13:38:07 2016 +0300 | 6f0af734aa..c6dba16160
+SUPEE-8788 | CE_1.9.1.1 | v2 | 8d9fad1daf5131de3430ef09b0816d3d133c8412 | Mon Sep 26 14:06:18 2016 +0300 | 38d673b4d2..8d9fad1daf
 
 __PATCHFILE_FOLLOWS__
 diff --git app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php
@@ -571,7 +571,7 @@ index 01adf38..6735129 100644
          return $_processor->getMimeType() !== null;
      }
 diff --git app/code/core/Mage/Catalog/etc/config.xml app/code/core/Mage/Catalog/etc/config.xml
-index 1bd15f4..33b41c4 100644
+index 51c5e2b..d56368b 100644
 --- app/code/core/Mage/Catalog/etc/config.xml
 +++ app/code/core/Mage/Catalog/etc/config.xml
 @@ -807,6 +807,7 @@
@@ -736,7 +736,7 @@ index 0000000..e91a482
 +    }
 +}
 diff --git app/code/core/Mage/Core/Block/Abstract.php app/code/core/Mage/Core/Block/Abstract.php
-index 2c332b2..3723f81 100644
+index 9ab59ef..7563125 100644
 --- app/code/core/Mage/Core/Block/Abstract.php
 +++ app/code/core/Mage/Core/Block/Abstract.php
 @@ -37,6 +37,10 @@
@@ -766,7 +766,7 @@ index 2c332b2..3723f81 100644
          /**
           * don't prevent recalculation by saving generated cache key
 diff --git app/code/core/Mage/Core/Helper/Url.php app/code/core/Mage/Core/Helper/Url.php
-index 99cf1cf..4cc386e 100644
+index f38afec3..789cfa3 100644
 --- app/code/core/Mage/Core/Helper/Url.php
 +++ app/code/core/Mage/Core/Helper/Url.php
 @@ -51,7 +51,7 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
@@ -922,7 +922,7 @@ index bfb881f..bea527d 100644
  
          $profileHistory = Mage::getModel('dataflow/profile_history');
 diff --git app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Links.php app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Links.php
-index 99840f2..eede8ef 100644
+index 1178b6e..6e66374 100644
 --- app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Links.php
 +++ app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Links.php
 @@ -32,7 +32,7 @@
@@ -934,7 +934,7 @@ index 99840f2..eede8ef 100644
  {
      /**
       * Purchased Separately Attribute cache
-@@ -242,6 +242,7 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
+@@ -245,6 +245,7 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
       */
       protected function _prepareLayout()
      {
@@ -942,7 +942,7 @@ index 99840f2..eede8ef 100644
          $this->setChild(
              'upload_button',
              $this->getLayout()->createBlock('adminhtml/widget_button')->addData(array(
-@@ -251,6 +252,10 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
+@@ -254,6 +255,10 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
                  'onclick' => 'Downloadable.massUploadByType(\'links\');Downloadable.massUploadByType(\'linkssample\')'
              ))
          );
@@ -953,7 +953,7 @@ index 99840f2..eede8ef 100644
      }
  
      /**
-@@ -270,33 +275,56 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
+@@ -273,33 +278,56 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
       */
      public function getConfigJson($type='links')
      {
@@ -1874,10 +1874,10 @@ index 3bb92a1..6456ff9 100644
          }
      }
 diff --git app/code/core/Mage/Paygate/Model/Authorizenet.php app/code/core/Mage/Paygate/Model/Authorizenet.php
-index 94bc44d..70d1b0b 100644
+index 86550b0..bfaf4a0 100644
 --- app/code/core/Mage/Paygate/Model/Authorizenet.php
 +++ app/code/core/Mage/Paygate/Model/Authorizenet.php
-@@ -1273,8 +1273,10 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
+@@ -1258,8 +1258,10 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
          $uri = $this->getConfigData('cgi_url');
          $client->setUri($uri ? $uri : self::CGI_URL);
          $client->setConfig(array(
@@ -1890,11 +1890,14 @@ index 94bc44d..70d1b0b 100644
              //'ssltransport' => 'tcp',
          ));
          foreach ($request->getData() as $key => $value) {
-@@ -1543,7 +1545,11 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
+@@ -1526,8 +1528,13 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
+ 
+         $client = new Varien_Http_Client();
          $uri = $this->getConfigData('cgi_url_td');
-         $uri = $uri ? $uri : self::CGI_URL_TD;
-         $client->setUri($uri);
+-        $client->setUri($uri ? $uri : self::CGI_URL_TD);
 -        $client->setConfig(array('timeout'=>45));
++        $uri = $uri ? $uri : self::CGI_URL_TD;
++        $client->setUri($uri);
 +        $client->setConfig(array(
 +            'timeout' => 45,
 +            'verifyhost' => 2,
@@ -2007,7 +2010,7 @@ index 63d7b88..08d3dcf 100644
       *
       * @param Mage_Paypal_Model_Payment_Transaction $transaction
 diff --git app/code/core/Mage/Sales/Model/Resource/Order/Payment.php app/code/core/Mage/Sales/Model/Resource/Order/Payment.php
-index 83eb0f0..e0b68cd 100644
+index 83eb0f0..e0b68cd 100755
 --- app/code/core/Mage/Sales/Model/Resource/Order/Payment.php
 +++ app/code/core/Mage/Sales/Model/Resource/Order/Payment.php
 @@ -58,4 +58,28 @@ class Mage_Sales_Model_Resource_Order_Payment extends Mage_Sales_Model_Resource_
@@ -2040,7 +2043,7 @@ index 83eb0f0..e0b68cd 100644
 +    }
  }
 diff --git app/code/core/Mage/Sales/Model/Resource/Order/Payment/Transaction.php app/code/core/Mage/Sales/Model/Resource/Order/Payment/Transaction.php
-index fa68eb2..7db98f2 100644
+index fa68eb2..7db98f2 100755
 --- app/code/core/Mage/Sales/Model/Resource/Order/Payment/Transaction.php
 +++ app/code/core/Mage/Sales/Model/Resource/Order/Payment/Transaction.php
 @@ -53,6 +53,30 @@ class Mage_Sales_Model_Resource_Order_Payment_Transaction extends Mage_Sales_Mod
@@ -2075,7 +2078,7 @@ index fa68eb2..7db98f2 100644
       * have to repeat the business logic to avoid accidental injection of wrong transactions
       *
 diff --git app/code/core/Mage/Sales/Model/Resource/Quote/Payment.php app/code/core/Mage/Sales/Model/Resource/Quote/Payment.php
-index 01011ce..a3ae8a0 100644
+index 01011ce..a3ae8a0 100755
 --- app/code/core/Mage/Sales/Model/Resource/Quote/Payment.php
 +++ app/code/core/Mage/Sales/Model/Resource/Quote/Payment.php
 @@ -51,4 +51,28 @@ class Mage_Sales_Model_Resource_Quote_Payment extends Mage_Sales_Model_Resource_
@@ -2108,7 +2111,7 @@ index 01011ce..a3ae8a0 100644
 +    }
  }
 diff --git app/code/core/Mage/Sales/Model/Resource/Recurring/Profile.php app/code/core/Mage/Sales/Model/Resource/Recurring/Profile.php
-index 78a806e..b4c5c1f 100644
+index 78a806e..b4c5c1f 100755
 --- app/code/core/Mage/Sales/Model/Resource/Recurring/Profile.php
 +++ app/code/core/Mage/Sales/Model/Resource/Recurring/Profile.php
 @@ -54,6 +54,33 @@ class Mage_Sales_Model_Resource_Recurring_Profile extends Mage_Sales_Model_Resou
@@ -3829,10 +3832,10 @@ index 4982ab9..db81327 100644
                  $responseBody = $client->request(Varien_Http_Client::POST)->getBody();
                  $debugData['result'] = $responseBody;
 diff --git app/code/core/Mage/Usa/Model/Shipping/Carrier/Fedex.php app/code/core/Mage/Usa/Model/Shipping/Carrier/Fedex.php
-index d615c19..e76ebc4 100644
+index a602a40..2d6053a 100644
 --- app/code/core/Mage/Usa/Model/Shipping/Carrier/Fedex.php
 +++ app/code/core/Mage/Usa/Model/Shipping/Carrier/Fedex.php
-@@ -604,6 +604,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex
+@@ -578,6 +578,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex
      /**
       * Get xml quotes
       *
@@ -3840,7 +3843,7 @@ index d615c19..e76ebc4 100644
       * @return Mage_Shipping_Model_Rate_Result
       */
      protected function _getXmlQuotes()
-@@ -663,8 +664,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex
+@@ -637,8 +638,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex
                  $ch = curl_init();
                  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                  curl_setopt($ch, CURLOPT_URL, $url);
@@ -3979,7 +3982,7 @@ index d7cb3b4..0e53ac9 100644
      }
  
 diff --git app/code/core/Mage/Wishlist/controllers/IndexController.php app/code/core/Mage/Wishlist/controllers/IndexController.php
-index a8d9932..3837636 100644
+index a3eb9b1..7df7d63 100644
 --- app/code/core/Mage/Wishlist/controllers/IndexController.php
 +++ app/code/core/Mage/Wishlist/controllers/IndexController.php
 @@ -434,6 +434,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
@@ -4252,7 +4255,7 @@ index 9b91417..581c9d9 100644
  //]]>
  </script>
 diff --git app/design/adminhtml/default/default/template/cms/browser/content/uploader.phtml app/design/adminhtml/default/default/template/cms/browser/content/uploader.phtml
-index ff1871c..c93c4c0 100644
+index 347a258..c93c4c0 100644
 --- app/design/adminhtml/default/default/template/cms/browser/content/uploader.phtml
 +++ app/design/adminhtml/default/default/template/cms/browser/content/uploader.phtml
 @@ -24,48 +24,8 @@
@@ -4291,7 +4294,7 @@ index ff1871c..c93c4c0 100644
 -maxUploadFileSizeInBytes = <?php echo $this->getDataMaxSizeInBytes() ?>;
 -maxUploadFileSize = '<?php echo $this->getDataMaxSize() ?>';
 -
--<?php echo $this->getJsObjectName() ?> = new Flex.Uploader('<?php echo $this->getHtmlId() ?>', '<?php echo $this->getUploaderUrl('media/uploader.swf') ?>', <?php echo $this->getConfigJson() ?>);
+-<?php echo $this->getJsObjectName() ?> = new Flex.Uploader('<?php echo $this->getHtmlId() ?>', '<?php echo $this->getSkinUrl('media/uploader.swf') ?>', <?php echo $this->getConfigJson() ?>);
 -<?php echo $this->getJsObjectName() ?>.onFilesComplete = function(completedFiles){
 -    completedFiles.each(function(file){
 -        <?php echo $this->getJsObjectName() ?>.removeFile(file.id);
@@ -4416,7 +4419,7 @@ index adf800b..66c684a 100644
          this.updateFiles();
      },
 diff --git app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/links.phtml app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/links.phtml
-index da9a280..342b701 100644
+index 6aeb234..8aa6d39 100644
 --- app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/links.phtml
 +++ app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/links.phtml
 @@ -28,6 +28,7 @@
@@ -4630,7 +4633,7 @@ index 3f58ce9..9a7f4c6 100644
  </script>
 +<?php echo $this->getChildHtml('additional_scripts'); ?>
 diff --git app/design/adminhtml/default/default/template/xmlconnect/edit/tab/design.phtml app/design/adminhtml/default/default/template/xmlconnect/edit/tab/design.phtml
-index 625aa9b..fefc962 100644
+index 509c2fd..89f4a39 100644
 --- app/design/adminhtml/default/default/template/xmlconnect/edit/tab/design.phtml
 +++ app/design/adminhtml/default/default/template/xmlconnect/edit/tab/design.phtml
 @@ -24,19 +24,22 @@
@@ -4790,7 +4793,7 @@ index 625aa9b..fefc962 100644
 -    },
 -    handleContainerHideBefore: function(container) {
 -        if (container && Element.descendantOf(this.uploader.container, container) && !this.uploader.checkAllComplete()) {
--            if (!confirm('<?php echo $this->jsQuoteEscape($this->__('There are files that were selected but not uploaded yet. After switching to another tab your selections may be lost. Do you wish to continue ?')) ;?>')) {
+-            if (!confirm('<?php echo $this->__('There are files that were selected but not uploaded yet. After switching to another tab your selections may be lost. Do you wish to continue ?');?>')) {
 -                return 'cannotchange';
 -            } else {
 +        this.onContainerHideBefore = this.uploader.onContainerHideBefore.bind(
@@ -4882,18 +4885,20 @@ index 0000000..c246b24
 +"Complete","Complete"
 \ No newline at end of file
 diff --git downloader/lib/Mage/HTTP/Client/Curl.php downloader/lib/Mage/HTTP/Client/Curl.php
-index e38c29a..5c474ec 100644
+index 9d75e94..5c474ec 100644
 --- downloader/lib/Mage/HTTP/Client/Curl.php
 +++ downloader/lib/Mage/HTTP/Client/Curl.php
-@@ -373,7 +373,7 @@ implements Mage_HTTP_IClient
+@@ -373,8 +373,8 @@ implements Mage_HTTP_IClient
          $uriModified = $this->getModifiedUri($uri, $https);
          $this->_ch = curl_init();
          $this->curlOption(CURLOPT_URL, $uriModified);
 -        $this->curlOption(CURLOPT_SSL_VERIFYPEER, false);
+-        $this->curlOption(CURLOPT_SSL_VERIFYHOST, 2);
 +        $this->curlOption(CURLOPT_SSL_VERIFYPEER, true);
-         $this->curlOption(CURLOPT_SSL_CIPHER_LIST, 'TLSv1');
++        $this->curlOption(CURLOPT_SSL_CIPHER_LIST, 'TLSv1');
          $this->getCurlMethodSettings($method, $params, $isAuthorizationRequired);
  
+         if(count($this->_headers)) {
 diff --git js/lib/uploader/flow.min.js js/lib/uploader/flow.min.js
 new file mode 100644
 index 0000000..34b888e
@@ -5921,6 +5926,119 @@ index 0000000..483b2af
 +        }
 +    });
 +})(fustyFlowFactory, window, document);
+diff --git lib/Unserialize/Parser.php lib/Unserialize/Parser.php
+index 423902a..2c01684 100644
+--- lib/Unserialize/Parser.php
++++ lib/Unserialize/Parser.php
+@@ -34,6 +34,7 @@ class Unserialize_Parser
+     const TYPE_DOUBLE = 'd';
+     const TYPE_ARRAY = 'a';
+     const TYPE_BOOL = 'b';
++    const TYPE_NULL = 'N';
+ 
+     const SYMBOL_QUOTE = '"';
+     const SYMBOL_SEMICOLON = ';';
+diff --git lib/Unserialize/Reader/Arr.php lib/Unserialize/Reader/Arr.php
+index caa979e..cd37804 100644
+--- lib/Unserialize/Reader/Arr.php
++++ lib/Unserialize/Reader/Arr.php
+@@ -101,7 +101,10 @@ class Unserialize_Reader_Arr
+         if ($this->_status == self::READING_VALUE) {
+             $value = $this->_reader->read($char, $prevChar);
+             if (!is_null($value)) {
+-                $this->_result[$this->_reader->key] = $value;
++                $this->_result[$this->_reader->key] =
++                    ($value == Unserialize_Reader_Null::NULL_VALUE && $prevChar == Unserialize_Parser::TYPE_NULL)
++                        ? null
++                        : $value;
+                 if (count($this->_result) < $this->_length) {
+                     $this->_reader = new Unserialize_Reader_ArrKey();
+                     $this->_status = self::READING_KEY;
+diff --git lib/Unserialize/Reader/ArrValue.php lib/Unserialize/Reader/ArrValue.php
+index d2a4937..c6c0221 100644
+--- lib/Unserialize/Reader/ArrValue.php
++++ lib/Unserialize/Reader/ArrValue.php
+@@ -84,6 +84,10 @@ class Unserialize_Reader_ArrValue
+                     $this->_reader = new Unserialize_Reader_Dbl();
+                     $this->_status = self::READING_VALUE;
+                     break;
++                case Unserialize_Parser::TYPE_NULL:
++                    $this->_reader = new Unserialize_Reader_Null();
++                    $this->_status = self::READING_VALUE;
++                    break;
+                 default:
+                     throw new Exception('Unsupported data type ' . $char);
+             }
+diff --git lib/Unserialize/Reader/Null.php lib/Unserialize/Reader/Null.php
+new file mode 100644
+index 0000000..93c7e0b
+--- /dev/null
++++ lib/Unserialize/Reader/Null.php
+@@ -0,0 +1,64 @@
++<?php
++/**
++ * Magento
++ *
++ * NOTICE OF LICENSE
++ *
++ * This source file is subject to the Open Software License (OSL 3.0)
++ * that is bundled with this package in the file LICENSE.txt.
++ * It is also available through the world-wide-web at this URL:
++ * http://opensource.org/licenses/osl-3.0.php
++ * If you did not receive a copy of the license and are unable to
++ * obtain it through the world-wide-web, please send an email
++ * to license@magento.com so we can send you a copy immediately.
++ *
++ * DISCLAIMER
++ *
++ * Do not edit or add to this file if you wish to upgrade Magento to newer
++ * versions in the future. If you wish to customize Magento for your
++ * needs please refer to http://www.magento.com for more information.
++ *
++ * @category    Unserialize
++ * @package     Unserialize_Reader_Null
++ * @copyright  Copyright (c) 2006-2016 X.commerce, Inc. and affiliates (http://www.magento.com)
++ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
++ */
++
++/**
++ * Class Unserialize_Reader_Null
++ */
++class Unserialize_Reader_Null
++{
++    /**
++     * @var int
++     */
++    protected $_status;
++
++    /**
++     * @var string
++     */
++    protected $_value;
++
++    const NULL_VALUE = 'null';
++
++    const READING_VALUE = 1;
++
++    /**
++     * @param string $char
++     * @param string $prevChar
++     * @return string|null
++     */
++    public function read($char, $prevChar)
++    {
++        if ($prevChar == Unserialize_Parser::SYMBOL_SEMICOLON) {
++            $this->_value = self::NULL_VALUE;
++            $this->_status = self::READING_VALUE;
++            return null;
++        }
++
++        if ($this->_status == self::READING_VALUE && $char == Unserialize_Parser::SYMBOL_SEMICOLON) {
++            return $this->_value;
++        }
++        return null;
++    }
++}
 diff --git skin/adminhtml/default/default/boxes.css skin/adminhtml/default/default/boxes.css
 index 298423c..7bb41d2 100644
 --- skin/adminhtml/default/default/boxes.css

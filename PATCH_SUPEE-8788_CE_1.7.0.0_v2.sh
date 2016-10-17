@@ -157,7 +157,7 @@ echo -e "$APPLIED_REVERTED_PATCH_INFO\n$PATCH_APPLY_REVERT_RESULT\n\n" >> "$APPL
 exit 0
 
 
-SUPEE-8788 | CE_1.7.0.1 | v1 | fbda1091041eecdc839947a9dc8fbe67881a727e | Thu Sep 8 14:34:05 2016 +0300 | 5dfd66ff47..fbda109104
+SUPEE-8788 | CE_1.7.0.0 | v2 | 6b5ef4fc5b09af74d0fd401440948d0a54dd203d | Fri Oct 14 19:27:22 2016 +0300 | 84fa3dd598466fa5c482965a3f8e5395af33bf9d
 
 __PATCHFILE_FOLLOWS__
 diff --git app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php
@@ -259,6 +259,19 @@ index b9b7376..82a33c0 100644
              ));
      }
  
+diff --git app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php
+index 3cc1121..454e0e2 100644
+--- app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php
++++ app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php
+@@ -444,7 +444,7 @@ class Mage_Adminhtml_Block_Dashboard_Graph extends Mage_Adminhtml_Block_Dashboar
+             }
+             return self::API_URL . '?' . implode('&', $p);
+         } else {
+-            $gaData = urlencode(base64_encode(serialize($params)));
++            $gaData = urlencode(base64_encode(json_encode($params)));
+             $gaHash = Mage::helper('adminhtml/dashboard_data')->getChartDataHash($gaData);
+             $params = array('ga' => $gaData, 'h' => $gaHash);
+             return $this->getUrl('*/*/tunnel', array('_query' => $params));
 diff --git app/code/core/Mage/Adminhtml/Block/Media/Uploader.php app/code/core/Mage/Adminhtml/Block/Media/Uploader.php
 index 033ece1..1f1d0fc 100644
 --- app/code/core/Mage/Adminhtml/Block/Media/Uploader.php
@@ -502,18 +515,21 @@ index 3355f17..8465a50 100644
      }
  
 diff --git app/code/core/Mage/Adminhtml/controllers/DashboardController.php app/code/core/Mage/Adminhtml/controllers/DashboardController.php
-index 8afc56e..bcd2bcf 100644
+index 8afc56e..a67c452 100644
 --- app/code/core/Mage/Adminhtml/controllers/DashboardController.php
 +++ app/code/core/Mage/Adminhtml/controllers/DashboardController.php
-@@ -91,7 +91,7 @@ class Mage_Adminhtml_DashboardController extends Mage_Adminhtml_Controller_Actio
+@@ -91,8 +91,9 @@ class Mage_Adminhtml_DashboardController extends Mage_Adminhtml_Controller_Actio
          $gaHash = $this->getRequest()->getParam('h');
          if ($gaData && $gaHash) {
              $newHash = Mage::helper('adminhtml/dashboard_data')->getChartDataHash($gaData);
 -            if ($newHash == $gaHash) {
+-                if ($params = unserialize(base64_decode(urldecode($gaData)))) {
 +            if (hash_equals($newHash, $gaHash)) {
-                 if ($params = unserialize(base64_decode(urldecode($gaData)))) {
++                $params = json_decode(base64_decode(urldecode($gaData)), true);
++                if ($params) {
                      $response = $httpClient->setUri(Mage_Adminhtml_Block_Dashboard_Graph::API_URL)
                              ->setParameterGet($params)
+                             ->setConfig(array('timeout' => 5))
 diff --git app/code/core/Mage/Adminhtml/controllers/IndexController.php app/code/core/Mage/Adminhtml/controllers/IndexController.php
 index 724dd73..4565d93 100644
 --- app/code/core/Mage/Adminhtml/controllers/IndexController.php
@@ -6571,7 +6587,7 @@ index 0000000..c246b24
 +"Complete","Complete"
 \ No newline at end of file
 diff --git downloader/Maged/Controller.php downloader/Maged/Controller.php
-index a5a6aa8..88839f5 100755
+index 50de89c..9bbeb83 100755
 --- downloader/Maged/Controller.php
 +++ downloader/Maged/Controller.php
 @@ -367,6 +367,11 @@ final class Maged_Controller
@@ -6658,20 +6674,20 @@ index 548de0f..a80357b 100755
       *
       * @param   mixed $data
 diff --git downloader/lib/Mage/HTTP/Client/Curl.php downloader/lib/Mage/HTTP/Client/Curl.php
-index 7ac2d0c..f481b2d5 100644
+index f26010a..9240b57 100644
 --- downloader/lib/Mage/HTTP/Client/Curl.php
 +++ downloader/lib/Mage/HTTP/Client/Curl.php
-@@ -378,8 +378,8 @@ implements Mage_HTTP_IClient
-         }
- 
-         $this->curlOption(CURLOPT_URL, $uri);
--        $this->curlOption(CURLOPT_SSL_VERIFYPEER, FALSE);
+@@ -372,8 +372,8 @@ implements Mage_HTTP_IClient
+         $uriModified = $this->getSecureRequest($uri, $isAuthorizationRequired);
+         $this->_ch = curl_init();
+         $this->curlOption(CURLOPT_URL, $uriModified);
+-        $this->curlOption(CURLOPT_SSL_VERIFYPEER, false);
 -        $this->curlOption(CURLOPT_SSL_VERIFYHOST, 2);
 +        $this->curlOption(CURLOPT_SSL_VERIFYPEER, true);
 +        $this->curlOption(CURLOPT_SSL_VERIFYHOST, 'TLSv1');
+         $this->getCurlMethodSettings($method, $params, $isAuthorizationRequired);
  
-         // force method to POST if secured
-         if ($isAuthorizationRequired) {
+         if(count($this->_headers)) {
 diff --git downloader/template/connect/packages.phtml downloader/template/connect/packages.phtml
 index 92e6ea8..998e1d9 100644
 --- downloader/template/connect/packages.phtml
@@ -7711,8 +7727,121 @@ index 0000000..483b2af
 +        }
 +    });
 +})(fustyFlowFactory, window, document);
+diff --git lib/Unserialize/Parser.php lib/Unserialize/Parser.php
+index 423902a..2c01684 100644
+--- lib/Unserialize/Parser.php
++++ lib/Unserialize/Parser.php
+@@ -34,6 +34,7 @@ class Unserialize_Parser
+     const TYPE_DOUBLE = 'd';
+     const TYPE_ARRAY = 'a';
+     const TYPE_BOOL = 'b';
++    const TYPE_NULL = 'N';
+ 
+     const SYMBOL_QUOTE = '"';
+     const SYMBOL_SEMICOLON = ';';
+diff --git lib/Unserialize/Reader/Arr.php lib/Unserialize/Reader/Arr.php
+index caa979e..cd37804 100644
+--- lib/Unserialize/Reader/Arr.php
++++ lib/Unserialize/Reader/Arr.php
+@@ -101,7 +101,10 @@ class Unserialize_Reader_Arr
+         if ($this->_status == self::READING_VALUE) {
+             $value = $this->_reader->read($char, $prevChar);
+             if (!is_null($value)) {
+-                $this->_result[$this->_reader->key] = $value;
++                $this->_result[$this->_reader->key] =
++                    ($value == Unserialize_Reader_Null::NULL_VALUE && $prevChar == Unserialize_Parser::TYPE_NULL)
++                        ? null
++                        : $value;
+                 if (count($this->_result) < $this->_length) {
+                     $this->_reader = new Unserialize_Reader_ArrKey();
+                     $this->_status = self::READING_KEY;
+diff --git lib/Unserialize/Reader/ArrValue.php lib/Unserialize/Reader/ArrValue.php
+index d2a4937..c6c0221 100644
+--- lib/Unserialize/Reader/ArrValue.php
++++ lib/Unserialize/Reader/ArrValue.php
+@@ -84,6 +84,10 @@ class Unserialize_Reader_ArrValue
+                     $this->_reader = new Unserialize_Reader_Dbl();
+                     $this->_status = self::READING_VALUE;
+                     break;
++                case Unserialize_Parser::TYPE_NULL:
++                    $this->_reader = new Unserialize_Reader_Null();
++                    $this->_status = self::READING_VALUE;
++                    break;
+                 default:
+                     throw new Exception('Unsupported data type ' . $char);
+             }
+diff --git lib/Unserialize/Reader/Null.php lib/Unserialize/Reader/Null.php
+new file mode 100644
+index 0000000..93c7e0b
+--- /dev/null
++++ lib/Unserialize/Reader/Null.php
+@@ -0,0 +1,64 @@
++<?php
++/**
++ * Magento
++ *
++ * NOTICE OF LICENSE
++ *
++ * This source file is subject to the Open Software License (OSL 3.0)
++ * that is bundled with this package in the file LICENSE.txt.
++ * It is also available through the world-wide-web at this URL:
++ * http://opensource.org/licenses/osl-3.0.php
++ * If you did not receive a copy of the license and are unable to
++ * obtain it through the world-wide-web, please send an email
++ * to license@magento.com so we can send you a copy immediately.
++ *
++ * DISCLAIMER
++ *
++ * Do not edit or add to this file if you wish to upgrade Magento to newer
++ * versions in the future. If you wish to customize Magento for your
++ * needs please refer to http://www.magento.com for more information.
++ *
++ * @category    Unserialize
++ * @package     Unserialize_Reader_Null
++ * @copyright  Copyright (c) 2006-2016 X.commerce, Inc. and affiliates (http://www.magento.com)
++ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
++ */
++
++/**
++ * Class Unserialize_Reader_Null
++ */
++class Unserialize_Reader_Null
++{
++    /**
++     * @var int
++     */
++    protected $_status;
++
++    /**
++     * @var string
++     */
++    protected $_value;
++
++    const NULL_VALUE = 'null';
++
++    const READING_VALUE = 1;
++
++    /**
++     * @param string $char
++     * @param string $prevChar
++     * @return string|null
++     */
++    public function read($char, $prevChar)
++    {
++        if ($prevChar == Unserialize_Parser::SYMBOL_SEMICOLON) {
++            $this->_value = self::NULL_VALUE;
++            $this->_status = self::READING_VALUE;
++            return null;
++        }
++
++        if ($this->_status == self::READING_VALUE && $char == Unserialize_Parser::SYMBOL_SEMICOLON) {
++            return $this->_value;
++        }
++        return null;
++    }
++}
 diff --git skin/adminhtml/default/default/boxes.css skin/adminhtml/default/default/boxes.css
-index 8a1af12..33acc81 100644
+index c6a8939..e91600a 100644
 --- skin/adminhtml/default/default/boxes.css
 +++ skin/adminhtml/default/default/boxes.css
 @@ -76,7 +76,7 @@
@@ -7724,7 +7853,7 @@ index 8a1af12..33acc81 100644
      position:absolute;
      color:#d85909;
      font-size:1.1em;
-@@ -1393,8 +1393,6 @@ ul.super-product-attributes { padding-left:15px; }
+@@ -1308,8 +1308,6 @@ ul.super-product-attributes { padding-left:15px; }
  .uploader .file-row-info .file-info-name  { font-weight:bold; }
  .uploader .file-row .progress-text { float:right; font-weight:bold; }
  .uploader .file-row .delete-button { float:right; }

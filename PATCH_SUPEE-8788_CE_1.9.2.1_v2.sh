@@ -157,7 +157,7 @@ echo -e "$APPLIED_REVERTED_PATCH_INFO\n$PATCH_APPLY_REVERT_RESULT\n\n" >> "$APPL
 exit 0
 
 
-SUPEE-8788 | CE_1.9.2.1 | v1 | 0344c233586ce79a15006cde854a317cb63541f8 | Thu Sep 8 13:37:29 2016 +0300 | 8175a2089e..0344c23358
+SUPEE-8788 | CE_1.9.2.1 | v2 | 5e140a5215788c98f4935df8a25d8ebca3b38588 | Mon Sep 26 14:02:50 2016 +0300 | 8175a2089e..5e140a5215
 
 __PATCHFILE_FOLLOWS__
 diff --git app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php
@@ -5921,6 +5921,119 @@ index 0000000..483b2af
 +        }
 +    });
 +})(fustyFlowFactory, window, document);
+diff --git lib/Unserialize/Parser.php lib/Unserialize/Parser.php
+index 423902a..2c01684 100644
+--- lib/Unserialize/Parser.php
++++ lib/Unserialize/Parser.php
+@@ -34,6 +34,7 @@ class Unserialize_Parser
+     const TYPE_DOUBLE = 'd';
+     const TYPE_ARRAY = 'a';
+     const TYPE_BOOL = 'b';
++    const TYPE_NULL = 'N';
+ 
+     const SYMBOL_QUOTE = '"';
+     const SYMBOL_SEMICOLON = ';';
+diff --git lib/Unserialize/Reader/Arr.php lib/Unserialize/Reader/Arr.php
+index caa979e..cd37804 100644
+--- lib/Unserialize/Reader/Arr.php
++++ lib/Unserialize/Reader/Arr.php
+@@ -101,7 +101,10 @@ class Unserialize_Reader_Arr
+         if ($this->_status == self::READING_VALUE) {
+             $value = $this->_reader->read($char, $prevChar);
+             if (!is_null($value)) {
+-                $this->_result[$this->_reader->key] = $value;
++                $this->_result[$this->_reader->key] =
++                    ($value == Unserialize_Reader_Null::NULL_VALUE && $prevChar == Unserialize_Parser::TYPE_NULL)
++                        ? null
++                        : $value;
+                 if (count($this->_result) < $this->_length) {
+                     $this->_reader = new Unserialize_Reader_ArrKey();
+                     $this->_status = self::READING_KEY;
+diff --git lib/Unserialize/Reader/ArrValue.php lib/Unserialize/Reader/ArrValue.php
+index d2a4937..c6c0221 100644
+--- lib/Unserialize/Reader/ArrValue.php
++++ lib/Unserialize/Reader/ArrValue.php
+@@ -84,6 +84,10 @@ class Unserialize_Reader_ArrValue
+                     $this->_reader = new Unserialize_Reader_Dbl();
+                     $this->_status = self::READING_VALUE;
+                     break;
++                case Unserialize_Parser::TYPE_NULL:
++                    $this->_reader = new Unserialize_Reader_Null();
++                    $this->_status = self::READING_VALUE;
++                    break;
+                 default:
+                     throw new Exception('Unsupported data type ' . $char);
+             }
+diff --git lib/Unserialize/Reader/Null.php lib/Unserialize/Reader/Null.php
+new file mode 100644
+index 0000000..93c7e0b
+--- /dev/null
++++ lib/Unserialize/Reader/Null.php
+@@ -0,0 +1,64 @@
++<?php
++/**
++ * Magento
++ *
++ * NOTICE OF LICENSE
++ *
++ * This source file is subject to the Open Software License (OSL 3.0)
++ * that is bundled with this package in the file LICENSE.txt.
++ * It is also available through the world-wide-web at this URL:
++ * http://opensource.org/licenses/osl-3.0.php
++ * If you did not receive a copy of the license and are unable to
++ * obtain it through the world-wide-web, please send an email
++ * to license@magento.com so we can send you a copy immediately.
++ *
++ * DISCLAIMER
++ *
++ * Do not edit or add to this file if you wish to upgrade Magento to newer
++ * versions in the future. If you wish to customize Magento for your
++ * needs please refer to http://www.magento.com for more information.
++ *
++ * @category    Unserialize
++ * @package     Unserialize_Reader_Null
++ * @copyright  Copyright (c) 2006-2016 X.commerce, Inc. and affiliates (http://www.magento.com)
++ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
++ */
++
++/**
++ * Class Unserialize_Reader_Null
++ */
++class Unserialize_Reader_Null
++{
++    /**
++     * @var int
++     */
++    protected $_status;
++
++    /**
++     * @var string
++     */
++    protected $_value;
++
++    const NULL_VALUE = 'null';
++
++    const READING_VALUE = 1;
++
++    /**
++     * @param string $char
++     * @param string $prevChar
++     * @return string|null
++     */
++    public function read($char, $prevChar)
++    {
++        if ($prevChar == Unserialize_Parser::SYMBOL_SEMICOLON) {
++            $this->_value = self::NULL_VALUE;
++            $this->_status = self::READING_VALUE;
++            return null;
++        }
++
++        if ($this->_status == self::READING_VALUE && $char == Unserialize_Parser::SYMBOL_SEMICOLON) {
++            return $this->_value;
++        }
++        return null;
++    }
++}
 diff --git skin/adminhtml/default/default/boxes.css skin/adminhtml/default/default/boxes.css
 index 4e7b190..a09717f 100644
 --- skin/adminhtml/default/default/boxes.css

@@ -157,11 +157,11 @@ echo -e "$APPLIED_REVERTED_PATCH_INFO\n$PATCH_APPLY_REVERT_RESULT\n\n" >> "$APPL
 exit 0
 
 
-SUPEE-8788 | CE_1.6.2.0 | v1 | 9329e235779ea3aeeb297f5ff24ae4f038e15d23 | Thu Sep 8 14:38:12 2016 +0300 | de010a55b5..9329e23577
+SUPEE-8788 | CE_1.9.0.0 | v2 | 146409505dfada07468b0f6f37d4d2fa201ecd9b | Thu Oct 13 17:36:08 2016 -0700 | 04a3d1d36125716e1fc50b9f0c78c89e8ec16d66
 
 __PATCHFILE_FOLLOWS__
 diff --git app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php
-index ba20f4d..8150064 100644
+index e431405..a49521b 100644
 --- app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php
 +++ app/code/core/Mage/Adminhtml/Block/Catalog/Product/Helper/Form/Gallery/Content.php
 @@ -34,6 +34,12 @@
@@ -203,8 +203,8 @@ index ba20f4d..8150064 100644
 +                'accept' => $browseConfig->getMimeTypesByExtensions('gif, png, jpeg, jpg')
              ));
  
-         return parent::_prepareLayout();
-@@ -63,7 +69,7 @@ class Mage_Adminhtml_Block_Catalog_Product_Helper_Form_Gallery_Content extends M
+         Mage::dispatchEvent('catalog_product_gallery_prepare_layout', array('block' => $this));
+@@ -65,7 +71,7 @@ class Mage_Adminhtml_Block_Catalog_Product_Helper_Form_Gallery_Content extends M
      /**
       * Retrive uploader block
       *
@@ -214,7 +214,7 @@ index ba20f4d..8150064 100644
      public function getUploader()
      {
 diff --git app/code/core/Mage/Adminhtml/Block/Cms/Wysiwyg/Images/Content/Uploader.php app/code/core/Mage/Adminhtml/Block/Cms/Wysiwyg/Images/Content/Uploader.php
-index e8b3334..45bd063 100644
+index fb82db2..741a78e 100644
 --- app/code/core/Mage/Adminhtml/Block/Cms/Wysiwyg/Images/Content/Uploader.php
 +++ app/code/core/Mage/Adminhtml/Block/Cms/Wysiwyg/Images/Content/Uploader.php
 @@ -31,29 +31,24 @@
@@ -259,11 +259,24 @@ index e8b3334..45bd063 100644
              ));
      }
  
+diff --git app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php
+index b6d72c0..da1b14a 100644
+--- app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php
++++ app/code/core/Mage/Adminhtml/Block/Dashboard/Graph.php
+@@ -444,7 +444,7 @@ class Mage_Adminhtml_Block_Dashboard_Graph extends Mage_Adminhtml_Block_Dashboar
+             }
+             return self::API_URL . '?' . implode('&', $p);
+         } else {
+-            $gaData = urlencode(base64_encode(serialize($params)));
++            $gaData = urlencode(base64_encode(json_encode($params)));
+             $gaHash = Mage::helper('adminhtml/dashboard_data')->getChartDataHash($gaData);
+             $params = array('ga' => $gaData, 'h' => $gaHash);
+             return $this->getUrl('*/*/tunnel', array('_query' => $params));
 diff --git app/code/core/Mage/Adminhtml/Block/Media/Uploader.php app/code/core/Mage/Adminhtml/Block/Media/Uploader.php
-index 1eff336..99cff39 100644
+index 26d7143..e529704 100644
 --- app/code/core/Mage/Adminhtml/Block/Media/Uploader.php
 +++ app/code/core/Mage/Adminhtml/Block/Media/Uploader.php
-@@ -31,188 +31,20 @@
+@@ -31,189 +31,20 @@
   * @package    Mage_Adminhtml
   * @author      Magento Core Team <core@magentocommerce.com>
   */
@@ -437,11 +450,12 @@ index 1eff336..99cff39 100644
 +class Mage_Adminhtml_Block_Media_Uploader extends Mage_Uploader_Block_Multiple
 +{
      /**
--     * Retrive full uploader SWF's file URL
+-     * Retrieve full uploader SWF's file URL
 -     * Implemented to solve problem with cross domain SWFs
 -     * Now uploader can be only in the same URL where backend located
 -     *
--     * @param string url to uploader in current theme
+-     * @param string $url url to uploader in current theme
+-     *
 -     * @return string full URL
 +     * Constructor for uploader block
       */
@@ -456,33 +470,15 @@ index 1eff336..99cff39 100644
 -        if (empty($url) || !$design->validateFile($url, array('_type' => 'skin', '_theme' => $theme))) {
 -            $theme = $design->getDefaultTheme();
 -        }
--        return Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN) .
+-        return Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB) . 'skin/' .
 -            $design->getArea() . '/' . $design->getPackageName() . '/' . $theme . '/' . $url;
 +        parent::__construct();
 +        $this->getUploaderConfig()->setTarget(Mage::getModel('adminhtml/url')->addSessionParam()->getUrl('*/*/upload'));
 +        $this->getUploaderConfig()->setFileParameterName('file');
      }
  }
-diff --git app/code/core/Mage/Adminhtml/Block/System/Email/Template/Preview.php app/code/core/Mage/Adminhtml/Block/System/Email/Template/Preview.php
-index 7048b3d..1ffcbb4 100644
---- app/code/core/Mage/Adminhtml/Block/System/Email/Template/Preview.php
-+++ app/code/core/Mage/Adminhtml/Block/System/Email/Template/Preview.php
-@@ -44,8 +44,12 @@ class Mage_Adminhtml_Block_System_Email_Template_Preview extends Mage_Adminhtml_
-             $template->setTemplateText($this->getRequest()->getParam('text'));
-             $template->setTemplateStyles($this->getRequest()->getParam('styles'));
-         }
-+
-+        /* @var $filter Mage_Core_Model_Input_Filter_MaliciousCode */
-+        $filter = Mage::getSingleton('core/input_filter_maliciousCode');
-+
-         $template->setTemplateText(
--            $this->escapeHtml($template->getTemplateText())
-+            $filter->filter($template->getTemplateText())
-         );
- 
-         Varien_Profiler::start("email_template_proccessing");
 diff --git app/code/core/Mage/Adminhtml/Block/Urlrewrite/Category/Tree.php app/code/core/Mage/Adminhtml/Block/Urlrewrite/Category/Tree.php
-index 519d59e..9ffd568 100644
+index b70b556..ec62598 100644
 --- app/code/core/Mage/Adminhtml/Block/Urlrewrite/Category/Tree.php
 +++ app/code/core/Mage/Adminhtml/Block/Urlrewrite/Category/Tree.php
 @@ -119,7 +119,7 @@ class Mage_Adminhtml_Block_Urlrewrite_Category_Tree extends Mage_Adminhtml_Block
@@ -495,7 +491,7 @@ index 519d59e..9ffd568 100644
              'product_count'  => (int)$node->getProductCount()
          );
 diff --git app/code/core/Mage/Adminhtml/Model/System/Config/Backend/Serialized.php app/code/core/Mage/Adminhtml/Model/System/Config/Backend/Serialized.php
-index 26c6085..f4f413b 100644
+index 0ad18b0..1b173f1 100644
 --- app/code/core/Mage/Adminhtml/Model/System/Config/Backend/Serialized.php
 +++ app/code/core/Mage/Adminhtml/Model/System/Config/Backend/Serialized.php
 @@ -29,8 +29,17 @@ class Mage_Adminhtml_Model_System_Config_Backend_Serialized extends Mage_Core_Mo
@@ -519,23 +515,26 @@ index 26c6085..f4f413b 100644
      }
  
 diff --git app/code/core/Mage/Adminhtml/controllers/DashboardController.php app/code/core/Mage/Adminhtml/controllers/DashboardController.php
-index 5edfd5d..44c62a6 100644
+index 09ffc4c..f5b85dc 100644
 --- app/code/core/Mage/Adminhtml/controllers/DashboardController.php
 +++ app/code/core/Mage/Adminhtml/controllers/DashboardController.php
-@@ -76,7 +76,7 @@ class Mage_Adminhtml_DashboardController extends Mage_Adminhtml_Controller_Actio
+@@ -91,8 +91,9 @@ class Mage_Adminhtml_DashboardController extends Mage_Adminhtml_Controller_Actio
          $gaHash = $this->getRequest()->getParam('h');
          if ($gaData && $gaHash) {
              $newHash = Mage::helper('adminhtml/dashboard_data')->getChartDataHash($gaData);
 -            if ($newHash == $gaHash) {
+-                if ($params = unserialize(base64_decode(urldecode($gaData)))) {
 +            if (hash_equals($newHash, $gaHash)) {
-                 if ($params = unserialize(base64_decode(urldecode($gaData)))) {
++                $params = json_decode(base64_decode(urldecode($gaData)), true);
++                if ($params) {
                      $response = $httpClient->setUri(Mage_Adminhtml_Block_Dashboard_Graph::API_URL)
                              ->setParameterGet($params)
+                             ->setConfig(array('timeout' => 5))
 diff --git app/code/core/Mage/Adminhtml/controllers/IndexController.php app/code/core/Mage/Adminhtml/controllers/IndexController.php
-index 69a55b9..23274ea 100644
+index 508039e..a53e123 100644
 --- app/code/core/Mage/Adminhtml/controllers/IndexController.php
 +++ app/code/core/Mage/Adminhtml/controllers/IndexController.php
-@@ -401,7 +401,7 @@ class Mage_Adminhtml_IndexController extends Mage_Adminhtml_Controller_Action
+@@ -392,7 +392,7 @@ class Mage_Adminhtml_IndexController extends Mage_Adminhtml_Controller_Action
          }
  
          $userToken = $user->getRpToken();
@@ -545,7 +544,7 @@ index 69a55b9..23274ea 100644
          }
      }
 diff --git app/code/core/Mage/Adminhtml/controllers/Media/UploaderController.php app/code/core/Mage/Adminhtml/controllers/Media/UploaderController.php
-index bdc4394..9f61f96 100644
+index 117d438..d30f88d 100644
 --- app/code/core/Mage/Adminhtml/controllers/Media/UploaderController.php
 +++ app/code/core/Mage/Adminhtml/controllers/Media/UploaderController.php
 @@ -43,7 +43,7 @@ class Mage_Adminhtml_Media_UploaderController extends Mage_Adminhtml_Controller_
@@ -557,213 +556,8 @@ index bdc4394..9f61f96 100644
          );
          $this->renderLayout();
      }
-diff --git app/code/core/Mage/Catalog/Block/Product/Abstract.php app/code/core/Mage/Catalog/Block/Product/Abstract.php
-index e573a51..6edb9d7 100644
---- app/code/core/Mage/Catalog/Block/Product/Abstract.php
-+++ app/code/core/Mage/Catalog/Block/Product/Abstract.php
-@@ -34,6 +34,11 @@
-  */
- abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Template
- {
-+    /**
-+     * Price block array
-+     *
-+     * @var array
-+     */
-     protected $_priceBlock = array();
- 
-     /**
-@@ -43,10 +48,25 @@ abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Templ
-      */
-     protected $_block = 'catalog/product_price';
- 
-+    /**
-+     * Price template
-+     *
-+     * @var string
-+     */
-     protected $_priceBlockDefaultTemplate = 'catalog/product/price.phtml';
- 
-+    /**
-+     * Tier price template
-+     *
-+     * @var string
-+     */
-     protected $_tierPriceDefaultTemplate  = 'catalog/product/view/tierprices.phtml';
- 
-+    /**
-+     * Price types
-+     *
-+     * @var array
-+     */
-     protected $_priceBlockTypes = array();
- 
-     /**
-@@ -56,6 +76,11 @@ abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Templ
-      */
-     protected $_useLinkForAsLowAs = true;
- 
-+    /**
-+     * Review block instance
-+     *
-+     * @var null|Mage_Review_Block_Helper
-+     */
-     protected $_reviewsHelperBlock;
- 
-     /**
-@@ -89,18 +114,33 @@ abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Templ
-      */
-     public function getAddToCartUrl($product, $additional = array())
-     {
--        if ($product->getTypeInstance(true)->hasRequiredOptions($product)) {
--            if (!isset($additional['_escape'])) {
--                $additional['_escape'] = true;
--            }
--            if (!isset($additional['_query'])) {
--                $additional['_query'] = array();
--            }
--            $additional['_query']['options'] = 'cart';
--
--            return $this->getProductUrl($product, $additional);
-+        if (!$product->getTypeInstance(true)->hasRequiredOptions($product)) {
-+            return $this->helper('checkout/cart')->getAddUrl($product, $additional);
-         }
--        return $this->helper('checkout/cart')->getAddUrl($product, $additional);
-+        $additional = array_merge(
-+            $additional,
-+            array(Mage_Core_Model_Url::FORM_KEY => $this->_getSingletonModel('core/session')->getFormKey())
-+        );
-+        if (!isset($additional['_escape'])) {
-+            $additional['_escape'] = true;
-+        }
-+        if (!isset($additional['_query'])) {
-+            $additional['_query'] = array();
-+        }
-+        $additional['_query']['options'] = 'cart';
-+        return $this->getProductUrl($product, $additional);
-+    }
-+
-+    /**
-+     * Return model instance
-+     *
-+     * @param string $className
-+     * @param array $arguments
-+     * @return Mage_Core_Model_Abstract
-+     */
-+    protected function _getSingletonModel($className, $arguments = array())
-+    {
-+        return Mage::getSingleton($className, $arguments);
-     }
- 
-     /**
-@@ -126,7 +166,7 @@ abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Templ
-     }
- 
-     /**
--     * Enter description here...
-+     * Return link to Add to Wishlist
-      *
-      * @param Mage_Catalog_Model_Product $product
-      * @return string
-@@ -155,6 +195,12 @@ abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Templ
-         return null;
-     }
- 
-+    /**
-+     * Return price block
-+     *
-+     * @param string $productTypeId
-+     * @return mixed
-+     */
-     protected function _getPriceBlock($productTypeId)
-     {
-         if (!isset($this->_priceBlock[$productTypeId])) {
-@@ -169,6 +215,12 @@ abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Templ
-         return $this->_priceBlock[$productTypeId];
-     }
- 
-+    /**
-+     * Return Block template
-+     *
-+     * @param string $productTypeId
-+     * @return string
-+     */
-     protected function _getPriceBlockTemplate($productTypeId)
-     {
-         if (isset($this->_priceBlockTypes[$productTypeId])) {
-@@ -303,6 +355,11 @@ abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Templ
-         return $this->getData('product');
-     }
- 
-+    /**
-+     * Return tier price template
-+     *
-+     * @return mixed|string
-+     */
-     public function getTierPriceTemplate()
-     {
-         if (!$this->hasData('tier_price_template')) {
-@@ -410,13 +467,13 @@ abstract class Mage_Catalog_Block_Product_Abstract extends Mage_Core_Block_Templ
-      *
-      * @return string
-      */
--    public function getImageLabel($product=null, $mediaAttributeCode='image')
-+    public function getImageLabel($product = null, $mediaAttributeCode = 'image')
-     {
-         if (is_null($product)) {
-             $product = $this->getProduct();
-         }
- 
--        $label = $product->getData($mediaAttributeCode.'_label');
-+        $label = $product->getData($mediaAttributeCode . '_label');
-         if (empty($label)) {
-             $label = $product->getName();
-         }
-diff --git app/code/core/Mage/Catalog/Block/Product/View.php app/code/core/Mage/Catalog/Block/Product/View.php
-index b83bece..c853d6b 100644
---- app/code/core/Mage/Catalog/Block/Product/View.php
-+++ app/code/core/Mage/Catalog/Block/Product/View.php
-@@ -60,7 +60,7 @@ class Mage_Catalog_Block_Product_View extends Mage_Catalog_Block_Product_Abstrac
-             $currentCategory = Mage::registry('current_category');
-             if ($keyword) {
-                 $headBlock->setKeywords($keyword);
--            } elseif($currentCategory) {
-+            } elseif ($currentCategory) {
-                 $headBlock->setKeywords($product->getName());
-             }
-             $description = $product->getMetaDescription();
-@@ -70,7 +70,7 @@ class Mage_Catalog_Block_Product_View extends Mage_Catalog_Block_Product_Abstrac
-                 $headBlock->setDescription(Mage::helper('core/string')->substr($product->getDescription(), 0, 255));
-             }
-             if ($this->helper('catalog/product')->canUseCanonicalTag()) {
--                $params = array('_ignore_category'=>true);
-+                $params = array('_ignore_category' => true);
-                 $headBlock->addLinkRel('canonical', $product->getUrlModel()->getUrl($product, $params));
-             }
-         }
-@@ -116,7 +116,7 @@ class Mage_Catalog_Block_Product_View extends Mage_Catalog_Block_Product_Abstrac
-             return $this->getCustomAddToCartUrl();
-         }
- 
--        if ($this->getRequest()->getParam('wishlist_next')){
-+        if ($this->getRequest()->getParam('wishlist_next')) {
-             $additional['wishlist_next'] = 1;
-         }
- 
-@@ -178,9 +178,9 @@ class Mage_Catalog_Block_Product_View extends Mage_Catalog_Block_Product_Abstrac
-         );
- 
-         $responseObject = new Varien_Object();
--        Mage::dispatchEvent('catalog_product_view_config', array('response_object'=>$responseObject));
-+        Mage::dispatchEvent('catalog_product_view_config', array('response_object' => $responseObject));
-         if (is_array($responseObject->getAdditionalOptions())) {
--            foreach ($responseObject->getAdditionalOptions() as $option=>$value) {
-+            foreach ($responseObject->getAdditionalOptions() as $option => $value) {
-                 $config[$option] = $value;
-             }
-         }
 diff --git app/code/core/Mage/Catalog/Helper/Image.php app/code/core/Mage/Catalog/Helper/Image.php
-index f7ec369..eef9efc 100644
+index d0eada6..f557516 100644
 --- app/code/core/Mage/Catalog/Helper/Image.php
 +++ app/code/core/Mage/Catalog/Helper/Image.php
 @@ -31,6 +31,8 @@
@@ -772,11 +566,11 @@ index f7ec369..eef9efc 100644
  {
 +    const XML_NODE_PRODUCT_MAX_DIMENSION = 'catalog/product_image/max_dimension';
 +
-     protected $_model;
-     protected $_scheduleResize = false;
-     protected $_scheduleRotate = false;
-@@ -492,10 +494,18 @@ class Mage_Catalog_Helper_Image extends Mage_Core_Helper_Abstract
-      * @throw Mage_Core_Exception
+     /**
+      * Current model
+      *
+@@ -631,10 +633,16 @@ class Mage_Catalog_Helper_Image extends Mage_Core_Helper_Abstract
+      * @throws Mage_Core_Exception
       */
      public function validateUploadFile($filePath) {
 -        if (!getimagesize($filePath)) {
@@ -785,111 +579,32 @@ index f7ec369..eef9efc 100644
 +        if (!$imageInfo) {
              Mage::throwException($this->__('Disallowed file type.'));
          }
--        return true;
-+
+ 
 +        if ($imageInfo[0] > $maxDimension || $imageInfo[1] > $maxDimension) {
 +            Mage::throwException($this->__('Disalollowed file format.'));
 +        }
 +
-+        $_processor = new Varien_Image($filePath);
-+        return $_processor->getMimeType() !== null;
+         $_processor = new Varien_Image($filePath);
+         return $_processor->getMimeType() !== null;
      }
+diff --git app/code/core/Mage/Catalog/Model/Resource/Layer/Filter/Price.php app/code/core/Mage/Catalog/Model/Resource/Layer/Filter/Price.php
+index 1ba0462..f9ddc73 100755
+--- app/code/core/Mage/Catalog/Model/Resource/Layer/Filter/Price.php
++++ app/code/core/Mage/Catalog/Model/Resource/Layer/Filter/Price.php
+@@ -269,7 +269,7 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
+             'range' => $rangeExpr,
+             'count' => $countExpr
+         ));
+-        $select->group($rangeExpr)->order("$rangeExpr ASC");
++        $select->group('range')->order('range ' . Varien_Data_Collection::SORT_ORDER_ASC);
  
- }
-diff --git app/code/core/Mage/Catalog/Helper/Product/Compare.php app/code/core/Mage/Catalog/Helper/Product/Compare.php
-index 31e9a74..3f76772 100644
---- app/code/core/Mage/Catalog/Helper/Product/Compare.php
-+++ app/code/core/Mage/Catalog/Helper/Product/Compare.php
-@@ -79,17 +79,17 @@ class Mage_Catalog_Helper_Product_Compare extends Mage_Core_Helper_Url
-      */
-     public function getListUrl()
-     {
--         $itemIds = array();
--         foreach ($this->getItemCollection() as $item) {
--             $itemIds[] = $item->getId();
--         }
-+        $itemIds = array();
-+        foreach ($this->getItemCollection() as $item) {
-+            $itemIds[] = $item->getId();
-+        }
- 
--         $params = array(
--            'items'=>implode(',', $itemIds),
-+        $params = array(
-+            'items' => implode(',', $itemIds),
-             Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED => $this->getEncodedUrl()
--         );
-+        );
- 
--         return $this->_getUrl('catalog/product_compare', $params);
-+        return $this->_getUrl('catalog/product_compare', $params);
+         return $this->_getReadAdapter()->fetchPairs($select);
      }
- 
-     /**
-@@ -102,7 +102,8 @@ class Mage_Catalog_Helper_Product_Compare extends Mage_Core_Helper_Url
-     {
-         return array(
-             'product' => $product->getId(),
--            Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED => $this->getEncodedUrl()
-+            Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED => $this->getEncodedUrl(),
-+            Mage_Core_Model_Url::FORM_KEY => $this->_getSingletonModel('core/session')->getFormKey()
-         );
-     }
- 
-@@ -128,7 +129,8 @@ class Mage_Catalog_Helper_Product_Compare extends Mage_Core_Helper_Url
-         $beforeCompareUrl = Mage::getSingleton('catalog/session')->getBeforeCompareUrl();
- 
-         $params = array(
--            'product'=>$product->getId(),
-+            'product' => $product->getId(),
-+            Mage_Core_Model_Url::FORM_KEY => $this->_getSingletonModel('core/session')->getFormKey(),
-             Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED => $this->getEncodedUrl($beforeCompareUrl)
-         );
- 
-@@ -143,10 +145,11 @@ class Mage_Catalog_Helper_Product_Compare extends Mage_Core_Helper_Url
-      */
-     public function getAddToCartUrl($product)
-     {
--        $beforeCompareUrl = Mage::getSingleton('catalog/session')->getBeforeCompareUrl();
-+        $beforeCompareUrl = $this->_getSingletonModel('catalog/session')->getBeforeCompareUrl();
-         $params = array(
--            'product'=>$product->getId(),
--            Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED => $this->getEncodedUrl($beforeCompareUrl)
-+            'product' => $product->getId(),
-+            Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED => $this->getEncodedUrl($beforeCompareUrl),
-+            Mage_Core_Model_Url::FORM_KEY => $this->_getSingletonModel('core/session')->getFormKey()
-         );
- 
-         return $this->_getUrl('checkout/cart/add', $params);
-@@ -161,7 +164,7 @@ class Mage_Catalog_Helper_Product_Compare extends Mage_Core_Helper_Url
-     public function getRemoveUrl($item)
-     {
-         $params = array(
--            'product'=>$item->getId(),
-+            'product' => $item->getId(),
-             Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED => $this->getEncodedUrl()
-         );
-         return $this->_getUrl('catalog/product_compare/remove', $params);
-diff --git app/code/core/Mage/Catalog/controllers/Product/CompareController.php app/code/core/Mage/Catalog/controllers/Product/CompareController.php
-index 78b9e73..cfad47c 100644
---- app/code/core/Mage/Catalog/controllers/Product/CompareController.php
-+++ app/code/core/Mage/Catalog/controllers/Product/CompareController.php
-@@ -74,6 +74,10 @@ class Mage_Catalog_Product_CompareController extends Mage_Core_Controller_Front_
-      */
-     public function addAction()
-     {
-+        if (!$this->_validateFormKey()) {
-+            $this->_redirectReferer();
-+            return;
-+        }
-         if ($productId = (int) $this->getRequest()->getParam('product')) {
-             $product = Mage::getModel('catalog/product')
-                 ->setStoreId(Mage::app()->getStore()->getId())
 diff --git app/code/core/Mage/Catalog/etc/config.xml app/code/core/Mage/Catalog/etc/config.xml
-index b7a3656..5665085 100644
+index 84ee0d3..a98ac8f 100644
 --- app/code/core/Mage/Catalog/etc/config.xml
 +++ app/code/core/Mage/Catalog/etc/config.xml
-@@ -750,6 +750,9 @@
+@@ -804,6 +804,9 @@
              <product>
                  <default_tax_group>2</default_tax_group>
              </product>
@@ -900,10 +615,10 @@ index b7a3656..5665085 100644
                  <product_url_suffix>.html</product_url_suffix>
                  <category_url_suffix>.html</category_url_suffix>
 diff --git app/code/core/Mage/Catalog/etc/system.xml app/code/core/Mage/Catalog/etc/system.xml
-index 4cbacb4..d1e1302 100644
+index 6cc76295..12e68c4 100644
 --- app/code/core/Mage/Catalog/etc/system.xml
 +++ app/code/core/Mage/Catalog/etc/system.xml
-@@ -181,6 +181,24 @@
+@@ -186,6 +186,24 @@
                          </lines_perpage>
                      </fields>
                  </sitemap>
@@ -929,7 +644,7 @@ index 4cbacb4..d1e1302 100644
                      <label>Product Image Placeholders</label>
                      <clone_fields>1</clone_fields>
 diff --git app/code/core/Mage/Centinel/Model/Api.php app/code/core/Mage/Centinel/Model/Api.php
-index 5126701..4ac0e86 100644
+index 2f600dc..eb5adfd 100644
 --- app/code/core/Mage/Centinel/Model/Api.php
 +++ app/code/core/Mage/Centinel/Model/Api.php
 @@ -25,11 +25,6 @@
@@ -1061,379 +776,11 @@ index 0000000..e91a482
 +        $this->response = $parser->deserializedResponse;
 +    }
 +}
-diff --git app/code/core/Mage/Checkout/Helper/Cart.php app/code/core/Mage/Checkout/Helper/Cart.php
-index 2331db7..2ba1429 100644
---- app/code/core/Mage/Checkout/Helper/Cart.php
-+++ app/code/core/Mage/Checkout/Helper/Cart.php
-@@ -31,6 +31,9 @@
-  */
- class Mage_Checkout_Helper_Cart extends Mage_Core_Helper_Url
- {
-+    /**
-+     * Redirect to Cart path
-+     */
-     const XML_PATH_REDIRECT_TO_CART         = 'checkout/cart/redirect_to_cart';
- 
-     /**
-@@ -47,16 +50,16 @@ class Mage_Checkout_Helper_Cart extends Mage_Core_Helper_Url
-      * Retrieve url for add product to cart
-      *
-      * @param   Mage_Catalog_Model_Product $product
-+     * @param array $additional
-      * @return  string
-      */
-     public function getAddUrl($product, $additional = array())
-     {
--        $continueUrl    = Mage::helper('core')->urlEncode($this->getCurrentUrl());
--        $urlParamName   = Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED;
--
-         $routeParams = array(
--            $urlParamName   => $continueUrl,
--            'product'       => $product->getEntityId()
-+            Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED => $this->_getHelperInstance('core')
-+                ->urlEncode($this->getCurrentUrl()),
-+            'product' => $product->getEntityId(),
-+            Mage_Core_Model_Url::FORM_KEY => $this->_getSingletonModel('core/session')->getFormKey()
-         );
- 
-         if (!empty($additional)) {
-@@ -77,6 +80,17 @@ class Mage_Checkout_Helper_Cart extends Mage_Core_Helper_Url
-     }
- 
-     /**
-+     * Return helper instance
-+     *
-+     * @param  string $helperName
-+     * @return Mage_Core_Helper_Abstract
-+     */
-+    protected function _getHelperInstance($helperName)
-+    {
-+        return Mage::helper($helperName);
-+    }
-+
-+    /**
-      * Retrieve url for remove product from cart
-      *
-      * @param   Mage_Sales_Quote_Item $item
-@@ -85,7 +99,7 @@ class Mage_Checkout_Helper_Cart extends Mage_Core_Helper_Url
-     public function getRemoveUrl($item)
-     {
-         $params = array(
--            'id'=>$item->getId(),
-+            'id' => $item->getId(),
-             Mage_Core_Controller_Front_Action::PARAM_NAME_BASE64_URL => $this->getCurrentBase64Url()
-         );
-         return $this->_getUrl('checkout/cart/delete', $params);
-diff --git app/code/core/Mage/Checkout/controllers/CartController.php app/code/core/Mage/Checkout/controllers/CartController.php
-index 3233084..16f1593 100644
---- app/code/core/Mage/Checkout/controllers/CartController.php
-+++ app/code/core/Mage/Checkout/controllers/CartController.php
-@@ -70,6 +70,7 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
-      * Set back redirect url to response
-      *
-      * @return Mage_Checkout_CartController
-+     * @throws Mage_Exception
-      */
-     protected function _goBack()
-     {
-@@ -156,9 +157,15 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
- 
-     /**
-      * Add product to shopping cart action
-+     *
-+     * @return void
-      */
-     public function addAction()
-     {
-+        if (!$this->_validateFormKey()) {
-+            $this->_goBack();
-+            return;
-+        }
-         $cart   = $this->_getCart();
-         $params = $this->getRequest()->getParams();
-         try {
-@@ -197,7 +204,7 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
-             );
- 
-             if (!$this->_getSession()->getNoCartRedirect(true)) {
--                if (!$cart->getQuote()->getHasError()){
-+                if (!$cart->getQuote()->getHasError()) {
-                     $message = $this->__('%s was added to your shopping cart.', Mage::helper('core')->htmlEscape($product->getName()));
-                     $this->_getSession()->addSuccess($message);
-                 }
-@@ -226,34 +233,41 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
-         }
-     }
- 
-+    /**
-+     * Add products in group to shopping cart action
-+     */
-     public function addgroupAction()
-     {
-         $orderItemIds = $this->getRequest()->getParam('order_items', array());
--        if (is_array($orderItemIds)) {
--            $itemsCollection = Mage::getModel('sales/order_item')
--                ->getCollection()
--                ->addIdFilter($orderItemIds)
--                ->load();
--            /* @var $itemsCollection Mage_Sales_Model_Mysql4_Order_Item_Collection */
--            $cart = $this->_getCart();
--            foreach ($itemsCollection as $item) {
--                try {
--                    $cart->addOrderItem($item, 1);
--                } catch (Mage_Core_Exception $e) {
--                    if ($this->_getSession()->getUseNotice(true)) {
--                        $this->_getSession()->addNotice($e->getMessage());
--                    } else {
--                        $this->_getSession()->addError($e->getMessage());
--                    }
--                } catch (Exception $e) {
--                    $this->_getSession()->addException($e, $this->__('Cannot add the item to shopping cart.'));
--                    Mage::logException($e);
--                    $this->_goBack();
-+
-+        if (!is_array($orderItemIds) || !$this->_validateFormKey()) {
-+            $this->_goBack();
-+            return;
-+        }
-+
-+        $itemsCollection = Mage::getModel('sales/order_item')
-+            ->getCollection()
-+            ->addIdFilter($orderItemIds)
-+            ->load();
-+        /* @var $itemsCollection Mage_Sales_Model_Mysql4_Order_Item_Collection */
-+        $cart = $this->_getCart();
-+        foreach ($itemsCollection as $item) {
-+            try {
-+                $cart->addOrderItem($item, 1);
-+            } catch (Mage_Core_Exception $e) {
-+                if ($this->_getSession()->getUseNotice(true)) {
-+                    $this->_getSession()->addNotice($e->getMessage());
-+                } else {
-+                    $this->_getSession()->addError($e->getMessage());
-                 }
-+            } catch (Exception $e) {
-+                $this->_getSession()->addException($e, $this->__('Cannot add the item to shopping cart.'));
-+                Mage::logException($e);
-+                $this->_goBack();
-             }
--            $cart->save();
--            $this->_getSession()->setCartWasUpdated(true);
-         }
-+        $cart->save();
-+        $this->_getSession()->setCartWasUpdated(true);
-         $this->_goBack();
-     }
- 
-@@ -337,8 +351,8 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
-                 array('item' => $item, 'request' => $this->getRequest(), 'response' => $this->getResponse())
-             );
-             if (!$this->_getSession()->getNoCartRedirect(true)) {
--                if (!$cart->getQuote()->getHasError()){
--                    $message = $this->__('%s was updated in your shopping cart.', Mage::helper('core')->htmlEscape($item->getProduct()->getName()));
-+                if (!$cart->getQuote()->getHasError()) {
-+                    $message = $this->__('%s was updated in your shopping cart.', Mage::helper('core')->escapeHtml($item->getProduct()->getName()));
-                     $this->_getSession()->addSuccess($message);
-                 }
-                 $this->_goBack();
-@@ -372,6 +386,10 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
-      */
-     public function updatePostAction()
-     {
-+        if (!$this->_validateFormKey()) {
-+            $this->_redirect('*/*/');
-+            return;
-+        }
-         try {
-             $cartData = $this->getRequest()->getParam('cart');
-             if (is_array($cartData)) {
-@@ -447,6 +465,11 @@ class Mage_Checkout_CartController extends Mage_Core_Controller_Front_Action
-         $this->_goBack();
-     }
- 
-+    /**
-+     * Estimate update action
-+     *
-+     * @return null
-+     */
-     public function estimateUpdatePostAction()
-     {
-         $code = (string) $this->getRequest()->getParam('estimate_method');
-diff --git app/code/core/Mage/Checkout/controllers/OnepageController.php app/code/core/Mage/Checkout/controllers/OnepageController.php
-index d68b639..7c0dda9 100644
---- app/code/core/Mage/Checkout/controllers/OnepageController.php
-+++ app/code/core/Mage/Checkout/controllers/OnepageController.php
-@@ -24,9 +24,16 @@
-  * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
-  */
- 
--
-+/**
-+ * Class Onepage controller
-+ */
- class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
- {
-+    /**
-+     * Functions for concrete method
-+     *
-+     * @var array
-+     */
-     protected $_sectionUpdateFunctions = array(
-         'payment-method'  => '_getPaymentMethodsHtml',
-         'shipping-method' => '_getShippingMethodsHtml',
-@@ -50,6 +57,11 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-         return $this;
-     }
- 
-+    /**
-+     * Send headers in case if session is expired
-+     *
-+     * @return Mage_Checkout_OnepageController
-+     */
-     protected function _ajaxRedirectResponse()
-     {
-         $this->getResponse()
-@@ -114,6 +126,12 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-         return $output;
-     }
- 
-+    /**
-+     * Return block content from the 'checkout_onepage_additional'
-+     * This is the additional content for shipping method
-+     *
-+     * @return string
-+     */
-     protected function _getAdditionalHtml()
-     {
-         $layout = $this->getLayout();
-@@ -167,7 +185,7 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-             return;
-         }
-         Mage::getSingleton('checkout/session')->setCartWasUpdated(false);
--        Mage::getSingleton('customer/session')->setBeforeAuthUrl(Mage::getUrl('*/*/*', array('_secure'=>true)));
-+        Mage::getSingleton('customer/session')->setBeforeAuthUrl(Mage::getUrl('*/*/*', array('_secure' => true)));
-         $this->getOnepage()->initCheckout();
-         $this->loadLayout();
-         $this->_initLayoutMessages('customer/session');
-@@ -187,6 +205,9 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-         $this->renderLayout();
-     }
- 
-+    /**
-+     * Shipping action
-+     */
-     public function shippingMethodAction()
-     {
-         if ($this->_expireAjax()) {
-@@ -196,6 +217,9 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-         $this->renderLayout();
-     }
- 
-+    /**
-+     * Review action
-+     */
-     public function reviewAction()
-     {
-         if ($this->_expireAjax()) {
-@@ -231,6 +255,9 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-         $this->renderLayout();
-     }
- 
-+    /**
-+     * Failure action
-+     */
-     public function failureAction()
-     {
-         $lastQuoteId = $this->getOnepage()->getCheckout()->getLastQuoteId();
-@@ -246,6 +273,9 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-     }
- 
- 
-+    /**
-+     * Additional action
-+     */
-     public function getAdditionalAction()
-     {
-         $this->getResponse()->setBody($this->_getAdditionalHtml());
-@@ -370,10 +400,10 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-             /*
-             $result will have erro data if shipping method is empty
-             */
--            if(!$result) {
-+            if (!$result) {
-                 Mage::dispatchEvent('checkout_controller_onepage_save_shipping_method',
--                        array('request'=>$this->getRequest(),
--                            'quote'=>$this->getOnepage()->getQuote()));
-+                    array('request' => $this->getRequest(),
-+                        'quote' => $this->getOnepage()->getQuote()));
-                 $this->getOnepage()->getQuote()->collectTotals();
-                 $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($result));
- 
-@@ -442,7 +472,8 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-     /**
-      * Get Order by quoteId
-      *
--     * @return Mage_Sales_Model_Order
-+     * @return Mage_Core_Model_Abstract|Mage_Sales_Model_Order
-+     * @throws Mage_Payment_Model_Info_Exception
-      */
-     protected function _getOrder()
-     {
-@@ -479,15 +510,21 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-      */
-     public function saveOrderAction()
-     {
-+        if (!$this->_validateFormKey()) {
-+            return $this->_redirect('*/*');
-+        }
-+
-         if ($this->_expireAjax()) {
-             return;
-         }
- 
-         $result = array();
-         try {
--            if ($requiredAgreements = Mage::helper('checkout')->getRequiredAgreementIds()) {
-+            $requiredAgreements = Mage::helper('checkout')->getRequiredAgreementIds();
-+            if ($requiredAgreements) {
-                 $postedAgreements = array_keys($this->getRequest()->getPost('agreement', array()));
--                if ($diff = array_diff($requiredAgreements, $postedAgreements)) {
-+                $diff = array_diff($requiredAgreements, $postedAgreements);
-+                if ($diff) {
-                     $result['success'] = false;
-                     $result['error'] = true;
-                     $result['error_messages'] = $this->__('Please agree to all the terms and conditions before placing the order.');
-@@ -520,7 +557,7 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-             $result['error']   = false;
-         } catch (Mage_Payment_Model_Info_Exception $e) {
-             $message = $e->getMessage();
--            if( !empty($message) ) {
-+            if ( !empty($message) ) {
-                 $result['error_messages'] = $message;
-             }
-             $result['goto_section'] = 'payment';
-@@ -535,12 +572,13 @@ class Mage_Checkout_OnepageController extends Mage_Checkout_Controller_Action
-             $result['error'] = true;
-             $result['error_messages'] = $e->getMessage();
- 
--            if ($gotoSection = $this->getOnepage()->getCheckout()->getGotoSection()) {
-+            $gotoSection = $this->getOnepage()->getCheckout()->getGotoSection();
-+            if ($gotoSection) {
-                 $result['goto_section'] = $gotoSection;
-                 $this->getOnepage()->getCheckout()->setGotoSection(null);
-             }
--
--            if ($updateSection = $this->getOnepage()->getCheckout()->getUpdateSection()) {
-+            $updateSection = $this->getOnepage()->getCheckout()->getUpdateSection();
-+            if ($updateSection) {
-                 if (isset($this->_sectionUpdateFunctions[$updateSection])) {
-                     $updateSectionFunction = $this->_sectionUpdateFunctions[$updateSection];
-                     $result['update_section'] = array(
 diff --git app/code/core/Mage/Core/Block/Abstract.php app/code/core/Mage/Core/Block/Abstract.php
-index 7ece433..7d9d714 100644
+index f793f43..5a58a9e 100644
 --- app/code/core/Mage/Core/Block/Abstract.php
 +++ app/code/core/Mage/Core/Block/Abstract.php
-@@ -38,6 +38,10 @@
+@@ -37,6 +37,10 @@
  abstract class Mage_Core_Block_Abstract extends Varien_Object
  {
      /**
@@ -1444,7 +791,7 @@ index 7ece433..7d9d714 100644
       * Cache group Tag
       */
      const CACHE_GROUP = 'block_html';
-@@ -1233,7 +1237,13 @@ abstract class Mage_Core_Block_Abstract extends Varien_Object
+@@ -1289,7 +1293,13 @@ abstract class Mage_Core_Block_Abstract extends Varien_Object
      public function getCacheKey()
      {
          if ($this->hasData('cache_key')) {
@@ -1460,7 +807,7 @@ index 7ece433..7d9d714 100644
          /**
           * don't prevent recalculation by saving generated cache key
 diff --git app/code/core/Mage/Core/Helper/Url.php app/code/core/Mage/Core/Helper/Url.php
-index 811b5c4..e55ee09 100644
+index b68cb8d..c238b16 100644
 --- app/code/core/Mage/Core/Helper/Url.php
 +++ app/code/core/Mage/Core/Helper/Url.php
 @@ -51,7 +51,7 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
@@ -1472,70 +819,8 @@ index 811b5c4..e55ee09 100644
  //        return $this->_getUrl('*/*/*', array('_current' => true, '_use_rewrite' => true));
      }
  
-@@ -65,7 +65,13 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
-         return $this->urlEncode($this->getCurrentUrl());
-     }
- 
--    public function getEncodedUrl($url=null)
-+    /**
-+     * Return encoded url
-+     *
-+     * @param null|string $url
-+     * @return string
-+     */
-+    public function getEncodedUrl($url = null)
-     {
-         if (!$url) {
-             $url = $this->getCurrentUrl();
-@@ -83,6 +89,12 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
-         return Mage::getBaseUrl();
-     }
- 
-+    /**
-+     * Formatting string
-+     *
-+     * @param string $string
-+     * @return string
-+     */
-     protected function _prepareString($string)
-     {
-         $string = preg_replace('#[^0-9a-z]+#i', '-', $string);
-@@ -104,7 +116,7 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
-         $startDelimiter = (false === strpos($url,'?'))? '?' : '&';
- 
-         $arrQueryParams = array();
--        foreach($param as $key=>$value) {
-+        foreach ($param as $key => $value) {
-             if (is_numeric($key) || is_object($value)) {
-                 continue;
-             }
-@@ -128,6 +140,7 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
-      *
-      * @param string $url
-      * @param string $paramKey
-+     * @param boolean $caseSensitive
-      * @return string
-      */
-     public function removeRequestParam($url, $paramKey, $caseSensitive = false)
-@@ -143,4 +156,16 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
-         }
-         return $url;
-     }
-+
-+    /**
-+     * Return singleton model instance
-+     *
-+     * @param string $name
-+     * @param array $arguments
-+     * @return Mage_Core_Model_Abstract
-+     */
-+    protected function _getSingletonModel($name, $arguments = array())
-+    {
-+        return Mage::getSingleton($name, $arguments);
-+    }
- }
 diff --git app/code/core/Mage/Core/Model/Encryption.php app/code/core/Mage/Core/Model/Encryption.php
-index 9fffd83..4763516 100644
+index 1e14beb..796b7e8 100644
 --- app/code/core/Mage/Core/Model/Encryption.php
 +++ app/code/core/Mage/Core/Model/Encryption.php
 @@ -98,9 +98,9 @@ class Mage_Core_Model_Encryption
@@ -1551,7 +836,7 @@ index 9fffd83..4763516 100644
          Mage::throwException('Invalid hash.');
      }
 diff --git app/code/core/Mage/Core/Model/Input/Filter/MaliciousCode.php app/code/core/Mage/Core/Model/Input/Filter/MaliciousCode.php
-index a559a6d..2566189 100644
+index ac34c9a..7830c0d 100644
 --- app/code/core/Mage/Core/Model/Input/Filter/MaliciousCode.php
 +++ app/code/core/Mage/Core/Model/Input/Filter/MaliciousCode.php
 @@ -65,7 +65,13 @@ class Mage_Core_Model_Input_Filter_MaliciousCode implements Zend_Filter_Interfac
@@ -1569,71 +854,8 @@ index a559a6d..2566189 100644
      }
  
      /**
-diff --git app/code/core/Mage/Core/Model/Url.php app/code/core/Mage/Core/Model/Url.php
-index 63bd855..ccf8d0b 100644
---- app/code/core/Mage/Core/Model/Url.php
-+++ app/code/core/Mage/Core/Model/Url.php
-@@ -97,6 +97,11 @@ class Mage_Core_Model_Url extends Varien_Object
-     const XML_PATH_SECURE_IN_FRONT  = 'web/secure/use_in_frontend';
- 
-     /**
-+     * Param name for form key functionality
-+     */
-+    const FORM_KEY = 'form_key';
-+
-+    /**
-      * Configuration data cache
-      *
-      * @var array
-@@ -483,7 +488,7 @@ class Mage_Core_Model_Url extends Varien_Object
-             }
-             $routePath = $this->getActionPath();
-             if ($this->getRouteParams()) {
--                foreach ($this->getRouteParams() as $key=>$value) {
-+                foreach ($this->getRouteParams() as $key => $value) {
-                     if (is_null($value) || false === $value || '' === $value || !is_scalar($value)) {
-                         continue;
-                     }
-@@ -939,8 +944,8 @@ class Mage_Core_Model_Url extends Varien_Object
-     /**
-      * Build url by requested path and parameters
-      *
--     * @param   string|null $routePath
--     * @param   array|null $routeParams
-+     * @param string|null $routePath
-+     * @param array|null $routeParams
-      * @return  string
-      */
-     public function getUrl($routePath = null, $routeParams = null)
-@@ -974,6 +979,7 @@ class Mage_Core_Model_Url extends Varien_Object
-             $noSid = (bool) $routeParams['_nosid'];
-             unset($routeParams['_nosid']);
-         }
-+
-         $url = $this->getRouteUrl($routePath, $routeParams);
-         /**
-          * Apply query params, need call after getRouteUrl for rewrite _current values
-@@ -1007,6 +1013,18 @@ class Mage_Core_Model_Url extends Varien_Object
-     }
- 
-     /**
-+     * Return singleton model instance
-+     *
-+     * @param string $name
-+     * @param array $arguments
-+     * @return Mage_Core_Model_Abstract
-+     */
-+    protected function _getSingletonModel($name, $arguments = array())
-+    {
-+        return Mage::getSingleton($name, $arguments);
-+    }
-+
-+    /**
-      * Check and add session id to URL
-      *
-      * @param string $url
 diff --git app/code/core/Mage/Core/functions.php app/code/core/Mage/Core/functions.php
-index 06894ae..6f4de6c 100644
+index 4283336..d060a0f 100644
 --- app/code/core/Mage/Core/functions.php
 +++ app/code/core/Mage/Core/functions.php
 @@ -375,3 +375,38 @@ if ( !function_exists('sys_get_temp_dir') ) {
@@ -1676,7 +898,7 @@ index 06894ae..6f4de6c 100644
 +    }
 +}
 diff --git app/code/core/Mage/Customer/Block/Address/Book.php app/code/core/Mage/Customer/Block/Address/Book.php
-index 8957f6b..07306bf 100644
+index cb07b4b..ac0a0c2 100644
 --- app/code/core/Mage/Customer/Block/Address/Book.php
 +++ app/code/core/Mage/Customer/Block/Address/Book.php
 @@ -56,7 +56,8 @@ class Mage_Customer_Block_Address_Book extends Mage_Core_Block_Template
@@ -1689,642 +911,8 @@ index 8957f6b..07306bf 100644
      }
  
      public function getAddressEditUrl($address)
-diff --git app/code/core/Mage/Customer/controllers/AccountController.php app/code/core/Mage/Customer/controllers/AccountController.php
-index 49cb60a..6aa708f 100644
---- app/code/core/Mage/Customer/controllers/AccountController.php
-+++ app/code/core/Mage/Customer/controllers/AccountController.php
-@@ -140,6 +140,11 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-      */
-     public function loginPostAction()
-     {
-+        if (!$this->_validateFormKey()) {
-+            $this->_redirect('*/*/');
-+            return;
-+        }
-+
-         if ($this->_getSession()->isLoggedIn()) {
-             $this->_redirect('*/*/');
-             return;
-@@ -157,8 +162,8 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-                 } catch (Mage_Core_Exception $e) {
-                     switch ($e->getCode()) {
-                         case Mage_Customer_Model_Customer::EXCEPTION_EMAIL_NOT_CONFIRMED:
--                            $value = Mage::helper('customer')->getEmailConfirmationUrl($login['username']);
--                            $message = Mage::helper('customer')->__('This account is not confirmed. <a href="%s">Click here</a> to resend confirmation email.', $value);
-+                            $value = $this->_getHelper('customer')->getEmailConfirmationUrl($login['username']);
-+                            $message = $this->_getHelper('customer')->__('This account is not confirmed. <a href="%s">Click here</a> to resend confirmation email.', $value);
-                             break;
-                         case Mage_Customer_Model_Customer::EXCEPTION_INVALID_EMAIL_OR_PASSWORD:
-                             $message = $e->getMessage();
-@@ -189,7 +194,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-         if (!$session->getBeforeAuthUrl() || $session->getBeforeAuthUrl() == Mage::getBaseUrl()) {
- 
-             // Set default URL to redirect customer to
--            $session->setBeforeAuthUrl(Mage::helper('customer')->getAccountUrl());
-+            $session->setBeforeAuthUrl($this->_getHelper('customer')->getAccountUrl());
-             // Redirect customer to the last page visited after logging in
-             if ($session->isLoggedIn()) {
-                 if (!Mage::getStoreConfigFlag(
-@@ -197,7 +202,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-                 )) {
-                     $referer = $this->getRequest()->getParam(Mage_Customer_Helper_Data::REFERER_QUERY_PARAM_NAME);
-                     if ($referer) {
--                        $referer = Mage::helper('core')->urlDecode($referer);
-+                        $referer = $this->_getHelper('core')->urlDecode($referer);
-                         if ($this->_isUrlInternal($referer)) {
-                             $session->setBeforeAuthUrl($referer);
-                         }
-@@ -206,10 +211,10 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-                     $session->setBeforeAuthUrl($session->getAfterAuthUrl(true));
-                 }
-             } else {
--                $session->setBeforeAuthUrl(Mage::helper('customer')->getLoginUrl());
-+                $session->setBeforeAuthUrl($this->_getHelper('customer')->getLoginUrl());
-             }
--        } else if ($session->getBeforeAuthUrl() == Mage::helper('customer')->getLogoutUrl()) {
--            $session->setBeforeAuthUrl(Mage::helper('customer')->getDashboardUrl());
-+        } else if ($session->getBeforeAuthUrl() == $this->_getHelper('customer')->getLogoutUrl()) {
-+            $session->setBeforeAuthUrl($this->_getHelper('customer')->getDashboardUrl());
-         } else {
-             if (!$session->getAfterAuthUrl()) {
-                 $session->setAfterAuthUrl($session->getBeforeAuthUrl());
-@@ -266,125 +271,254 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-             return;
-         }
- 
-+        /** @var $session Mage_Customer_Model_Session */
-         $session = $this->_getSession();
-         if ($session->isLoggedIn()) {
-             $this->_redirect('*/*/');
-             return;
-         }
- 
--        if ($this->getRequest()->isPost()) {
--            $errors = array();
-+        if (!$this->getRequest()->isPost()) {
-+            $errUrl = $this->_getUrl('*/*/create', array('_secure' => true));
-+            $this->_redirectError($errUrl);
-+            return;
-+        }
- 
--            if (!$customer = Mage::registry('current_customer')) {
--                $customer = Mage::getModel('customer/customer')->setId(null);
-+        $customer = $this->_getCustomer();
-+
-+        try {
-+            $errors = $this->_getCustomerErrors($customer);
-+
-+            if (empty($errors)) {
-+                $customer->save();
-+                $this->_dispatchRegisterSuccess($customer);
-+                $this->_successProcessRegistration($customer);
-+                return;
-+            } else {
-+                $this->_addSessionError($errors);
-+            }
-+        } catch (Mage_Core_Exception $e) {
-+            $session->setCustomerFormData($this->getRequest()->getPost());
-+            if ($e->getCode() === Mage_Customer_Model_Customer::EXCEPTION_EMAIL_EXISTS) {
-+                $url = $this->_getUrl('customer/account/forgotpassword');
-+                $message = $this->__('There is already an account with this email address. If you are sure that it is your email address, <a href="%s">click here</a> to get your password and access your account.', $url);
-+            } else {
-+                $message = Mage::helper('core')->escapeHtml($e->getMessage());
-             }
-+            $session->addError($message);
-+        } catch (Exception $e) {
-+            $session->setCustomerFormData($this->getRequest()->getPost())
-+                ->addException($e, $this->__('Cannot save the customer.'));
-+        }
-+        $url = $this->_getUrl('*/*/create', array('_secure' => true));
-+        $this->_redirectError($url);
-+    }
- 
--            /* @var $customerForm Mage_Customer_Model_Form */
--            $customerForm = Mage::getModel('customer/form');
--            $customerForm->setFormCode('customer_account_create')
--                ->setEntity($customer);
-+    /**
-+     * Success Registration
-+     *
-+     * @param Mage_Customer_Model_Customer $customer
-+     * @return Mage_Customer_AccountController
-+     */
-+    protected function _successProcessRegistration(Mage_Customer_Model_Customer $customer)
-+    {
-+        $session = $this->_getSession();
-+        if ($customer->isConfirmationRequired()) {
-+            /** @var $app Mage_Core_Model_App */
-+            $app = $this->_getApp();
-+            /** @var $store  Mage_Core_Model_Store*/
-+            $store = $app->getStore();
-+            $customer->sendNewAccountEmail(
-+                'confirmation',
-+                $session->getBeforeAuthUrl(),
-+                $store->getId()
-+            );
-+            $customerHelper = $this->_getHelper('customer');
-+            $session->addSuccess($this->__('Account confirmation is required. Please, check your email for the confirmation link. To resend the confirmation email please <a href="%s">click here</a>.',
-+                $customerHelper->getEmailConfirmationUrl($customer->getEmail())));
-+            $url = $this->_getUrl('*/*/index', array('_secure' => true));
-+        } else {
-+            $session->setCustomerAsLoggedIn($customer);
-+            $session->renewSession();
-+            $url = $this->_welcomeCustomer($customer);
-+        }
-+        $this->_redirectSuccess($url);
-+        return $this;
-+    }
- 
--            $customerData = $customerForm->extractData($this->getRequest());
-+    /**
-+     * Get Customer Model
-+     *
-+     * @return Mage_Customer_Model_Customer
-+     */
-+    protected function _getCustomer()
-+    {
-+        $customer = $this->_getFromRegistry('current_customer');
-+        if (!$customer) {
-+            $customer = $this->_getModel('customer/customer')->setId(null);
-+        }
-+        if ($this->getRequest()->getParam('is_subscribed', false)) {
-+            $customer->setIsSubscribed(1);
-+        }
-+        /**
-+         * Initialize customer group id
-+         */
-+        $customer->getGroupId();
- 
--            if ($this->getRequest()->getParam('is_subscribed', false)) {
--                $customer->setIsSubscribed(1);
-+        return $customer;
-+    }
-+
-+    /**
-+     * Add session error method
-+     *
-+     * @param string|array $errors
-+     */
-+    protected function _addSessionError($errors)
-+    {
-+        $session = $this->_getSession();
-+        $session->setCustomerFormData($this->getRequest()->getPost());
-+        if (is_array($errors)) {
-+            foreach ($errors as $errorMessage) {
-+                $session->addError(Mage::helper('core')->escapeHtml($errorMessage));
-             }
-+        } else {
-+            $session->addError($this->__('Invalid customer data'));
-+        }
-+    }
- 
--            /**
--             * Initialize customer group id
--             */
--            $customer->getGroupId();
--
--            if ($this->getRequest()->getPost('create_address')) {
--                /* @var $address Mage_Customer_Model_Address */
--                $address = Mage::getModel('customer/address');
--                /* @var $addressForm Mage_Customer_Model_Form */
--                $addressForm = Mage::getModel('customer/form');
--                $addressForm->setFormCode('customer_register_address')
--                    ->setEntity($address);
--
--                $addressData    = $addressForm->extractData($this->getRequest(), 'address', false);
--                $addressErrors  = $addressForm->validateData($addressData);
--                if ($addressErrors === true) {
--                    $address->setId(null)
--                        ->setIsDefaultBilling($this->getRequest()->getParam('default_billing', false))
--                        ->setIsDefaultShipping($this->getRequest()->getParam('default_shipping', false));
--                    $addressForm->compactData($addressData);
--                    $customer->addAddress($address);
--
--                    $addressErrors = $address->validate();
--                    if (is_array($addressErrors)) {
--                        $errors = array_merge($errors, $addressErrors);
--                    }
--                } else {
--                    $errors = array_merge($errors, $addressErrors);
--                }
-+    /**
-+     * Validate customer data and return errors if they are
-+     *
-+     * @param Mage_Customer_Model_Customer $customer
-+     * @return array|string
-+     */
-+    protected function _getCustomerErrors($customer)
-+    {
-+        $errors = array();
-+        $request = $this->getRequest();
-+        if ($request->getPost('create_address')) {
-+            $errors = $this->_getErrorsOnCustomerAddress($customer);
-+        }
-+        $customerForm = $this->_getCustomerForm($customer);
-+        $customerData = $customerForm->extractData($request);
-+        $customerErrors = $customerForm->validateData($customerData);
-+        if ($customerErrors !== true) {
-+            $errors = array_merge($customerErrors, $errors);
-+        } else {
-+            $customerForm->compactData($customerData);
-+            $customer->setPassword($request->getPost('password'));
-+            $customer->setConfirmation($request->getPost('confirmation'));
-+            $customerErrors = $customer->validate();
-+            if (is_array($customerErrors)) {
-+                $errors = array_merge($customerErrors, $errors);
-             }
-+        }
-+        return $errors;
-+    }
- 
--            try {
--                $customerErrors = $customerForm->validateData($customerData);
--                if ($customerErrors !== true) {
--                    $errors = array_merge($customerErrors, $errors);
--                } else {
--                    $customerForm->compactData($customerData);
--                    $customer->setPassword($this->getRequest()->getPost('password'));
--                    $customer->setConfirmation($this->getRequest()->getPost('confirmation'));
--                    $customerErrors = $customer->validate();
--                    if (is_array($customerErrors)) {
--                        $errors = array_merge($customerErrors, $errors);
--                    }
--                }
-+    /**
-+     * Get Customer Form Initalized Model
-+     *
-+     * @param Mage_Customer_Model_Customer $customer
-+     * @return Mage_Customer_Model_Form
-+     */
-+    protected function _getCustomerForm($customer)
-+    {
-+        /* @var $customerForm Mage_Customer_Model_Form */
-+        $customerForm = $this->_getModel('customer/form');
-+        $customerForm->setFormCode('customer_account_create');
-+        $customerForm->setEntity($customer);
-+        return $customerForm;
-+    }
- 
--                $validationResult = count($errors) == 0;
-+    /**
-+     * Get Helper
-+     *
-+     * @param string $path
-+     * @return Mage_Core_Helper_Abstract
-+     */
-+    protected function _getHelper($path)
-+    {
-+        return Mage::helper($path);
-+    }
- 
--                if (true === $validationResult) {
--                    $customer->save();
-+    /**
-+     * Get App
-+     *
-+     * @return Mage_Core_Model_App
-+     */
-+    protected function _getApp()
-+    {
-+        return Mage::app();
-+    }
- 
--                    Mage::dispatchEvent('customer_register_success',
--                        array('account_controller' => $this, 'customer' => $customer)
--                    );
--
--                    if ($customer->isConfirmationRequired()) {
--                        $customer->sendNewAccountEmail(
--                            'confirmation',
--                            $session->getBeforeAuthUrl(),
--                            Mage::app()->getStore()->getId()
--                        );
--                        $session->addSuccess($this->__('Account confirmation is required. Please, check your email for the confirmation link. To resend the confirmation email please <a href="%s">click here</a>.', Mage::helper('customer')->getEmailConfirmationUrl($customer->getEmail())));
--                        $this->_redirectSuccess(Mage::getUrl('*/*/index', array('_secure'=>true)));
--                        return;
--                    } else {
--                        $session->setCustomerAsLoggedIn($customer);
--                        $url = $this->_welcomeCustomer($customer);
--                        $this->_redirectSuccess($url);
--                        return;
--                    }
--                } else {
--                    $session->setCustomerFormData($this->getRequest()->getPost());
--                    if (is_array($errors)) {
--                        foreach ($errors as $errorMessage) {
--                            $session->addError(Mage::helper('core')->escapeHtml($errorMessage));
--                        }
--                    } else {
--                        $session->addError($this->__('Invalid customer data'));
--                    }
--                }
--            } catch (Mage_Core_Exception $e) {
--                $session->setCustomerFormData($this->getRequest()->getPost());
--                if ($e->getCode() === Mage_Customer_Model_Customer::EXCEPTION_EMAIL_EXISTS) {
--                    $url = Mage::getUrl('customer/account/forgotpassword');
--                    $message = $this->__('There is already an account with this email address. If you are sure that it is your email address, <a href="%s">click here</a> to get your password and access your account.', $url);
--                } else {
--                    $message = Mage::helper('core')->escapeHtml($e->getMessage());
--                }
--                $session->addError($message);
--            } catch (Exception $e) {
--                $session->setCustomerFormData($this->getRequest()->getPost())
--                    ->addException($e, $this->__('Cannot save the customer.'));
--            }
--        }
-+    /**
-+     * Dispatch Event
-+     *
-+     * @param Mage_Customer_Model_Customer $customer
-+     */
-+    protected function _dispatchRegisterSuccess($customer)
-+    {
-+        Mage::dispatchEvent('customer_register_success',
-+            array('account_controller' => $this, 'customer' => $customer)
-+        );
-+    }
- 
--        $this->_redirectError(Mage::getUrl('*/*/create', array('_secure' => true)));
-+    /**
-+     * Get errors on provided customer address
-+     *
-+     * @param Mage_Customer_Model_Customer $customer
-+     * @return array $errors
-+     */
-+    protected function _getErrorsOnCustomerAddress($customer)
-+    {
-+        $errors = array();
-+        /* @var $address Mage_Customer_Model_Address */
-+        $address = $this->_getModel('customer/address');
-+        /* @var $addressForm Mage_Customer_Model_Form */
-+        $addressForm = $this->_getModel('customer/form');
-+        $addressForm->setFormCode('customer_register_address')
-+            ->setEntity($address);
-+
-+        $addressData = $addressForm->extractData($this->getRequest(), 'address', false);
-+        $addressErrors = $addressForm->validateData($addressData);
-+        if (is_array($addressErrors)) {
-+            $errors = $addressErrors;
-+        }
-+        $address->setId(null)
-+            ->setIsDefaultBilling($this->getRequest()->getParam('default_billing', false))
-+            ->setIsDefaultShipping($this->getRequest()->getParam('default_shipping', false));
-+        $addressForm->compactData($addressData);
-+        $customer->addAddress($address);
-+
-+        $addressErrors = $address->validate();
-+        if (is_array($addressErrors)) {
-+            $errors = array_merge($errors, $addressErrors);
-+        }
-+        return $errors;
-+    }
-+
-+    /**
-+     * Get model by path
-+     *
-+     * @param string $path
-+     * @param array|null $arguments
-+     * @return false|Mage_Core_Model_Abstract
-+     */
-+    public function _getModel($path, $arguments = array())
-+    {
-+        return Mage::getModel($path, $arguments);
-+    }
-+
-+    /**
-+     * Get model from registry by path
-+     *
-+     * @param string $path
-+     * @return mixed
-+     */
-+    protected function _getFromRegistry($path)
-+    {
-+        return Mage::registry($path);
-     }
- 
-     /**
-@@ -407,7 +541,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-             Mage::app()->getStore()->getId()
-         );
- 
--        $successUrl = Mage::getUrl('*/*/index', array('_secure'=>true));
-+        $successUrl = $this->_getUrl('*/*/index', array('_secure'=>true));
-         if ($this->_getSession()->getBeforeAuthUrl()) {
-             $successUrl = $this->_getSession()->getBeforeAuthUrl(true);
-         }
-@@ -419,7 +553,8 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-      */
-     public function confirmAction()
-     {
--        if ($this->_getSession()->isLoggedIn()) {
-+        $session = $this->_getSession();
-+        if ($session->isLoggedIn()) {
-             $this->_redirect('*/*/');
-             return;
-         }
-@@ -433,7 +568,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
- 
-             // load customer by id (try/catch in case if it throws exceptions)
-             try {
--                $customer = Mage::getModel('customer/customer')->load($id);
-+                $customer = $this->_getModel('customer/customer')->load($id);
-                 if ((!$customer) || (!$customer->getId())) {
-                     throw new Exception('Failed to load customer by id.');
-                 }
-@@ -457,21 +592,22 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-                     throw new Exception($this->__('Failed to confirm customer account.'));
-                 }
- 
-+                $session->renewSession();
-                 // log in and send greeting email, then die happy
--                $this->_getSession()->setCustomerAsLoggedIn($customer);
-+                $session->setCustomerAsLoggedIn($customer);
-                 $successUrl = $this->_welcomeCustomer($customer, true);
-                 $this->_redirectSuccess($backUrl ? $backUrl : $successUrl);
-                 return;
-             }
- 
-             // die happy
--            $this->_redirectSuccess(Mage::getUrl('*/*/index', array('_secure'=>true)));
-+            $this->_redirectSuccess($this->_getUrl('*/*/index', array('_secure' => true)));
-             return;
-         }
-         catch (Exception $e) {
-             // die unhappy
-             $this->_getSession()->addError($e->getMessage());
--            $this->_redirectError(Mage::getUrl('*/*/index', array('_secure'=>true)));
-+            $this->_redirectError($this->_getUrl('*/*/index', array('_secure' => true)));
-             return;
-         }
-     }
-@@ -481,7 +617,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-      */
-     public function confirmationAction()
-     {
--        $customer = Mage::getModel('customer/customer');
-+        $customer = $this->_getModel('customer/customer');
-         if ($this->_getSession()->isLoggedIn()) {
-             $this->_redirect('*/*/');
-             return;
-@@ -502,10 +638,10 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-                     $this->_getSession()->addSuccess($this->__('This email does not require confirmation.'));
-                 }
-                 $this->_getSession()->setUsername($email);
--                $this->_redirectSuccess(Mage::getUrl('*/*/index', array('_secure' => true)));
-+                $this->_redirectSuccess($this->_getUrl('*/*/index', array('_secure' => true)));
-             } catch (Exception $e) {
-                 $this->_getSession()->addException($e, $this->__('Wrong email.'));
--                $this->_redirectError(Mage::getUrl('*/*/*', array('email' => $email, '_secure' => true)));
-+                $this->_redirectError($this->_getUrl('*/*/*', array('email' => $email, '_secure' => true)));
-             }
-             return;
-         }
-@@ -521,6 +657,18 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-     }
- 
-     /**
-+     * Get Url method
-+     *
-+     * @param string $url
-+     * @param array $params
-+     * @return string
-+     */
-+    protected function _getUrl($url, $params = array())
-+    {
-+        return Mage::getUrl($url, $params);
-+    }
-+
-+    /**
-      * Forgot customer password page
-      */
-     public function forgotPasswordAction()
-@@ -551,13 +699,13 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-             }
- 
-             /** @var $customer Mage_Customer_Model_Customer */
--            $customer = Mage::getModel('customer/customer')
-+            $customer = $this->_getModel('customer/customer')
-                 ->setWebsiteId(Mage::app()->getStore()->getWebsiteId())
-                 ->loadByEmail($email);
- 
-             if ($customer->getId()) {
-                 try {
--                    $newResetPasswordLinkToken = Mage::helper('customer')->generateResetPasswordLinkToken();
-+                    $newResetPasswordLinkToken = $this->_getHelper('customer')->generateResetPasswordLinkToken();
-                     $customer->changeResetPasswordLinkToken($newResetPasswordLinkToken);
-                     $customer->sendPasswordResetConfirmationEmail();
-                 } catch (Exception $exception) {
-@@ -567,7 +715,9 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-                 }
-             }
-             $this->_getSession()
--                ->addSuccess(Mage::helper('customer')->__('If there is an account associated with %s you will receive an email with a link to reset your password.', Mage::helper('customer')->htmlEscape($email)));
-+                ->addSuccess($this->_getHelper('customer')
-+                    ->__('If there is an account associated with %s you will receive an email with a link to reset your password.',
-+                        $this->_getHelper('customer')->escapeHtml($email)));
-             $this->_redirect('*/*/');
-             return;
-         } else {
-@@ -612,16 +762,14 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-                 ->_redirect('*/*/changeforgotten');
- 
-         } catch (Exception $exception) {
--            $this->_getSession()->addError(Mage::helper('customer')->__('Your password reset link has expired.'));
-+            $this->_getSession()->addError($this->_getHelper('customer')->__('Your password reset link has expired.'));
-             $this->_redirect('*/*/forgotpassword');
-         }
-     }
- 
-     /**
-      * Reset forgotten password
--     *
-      * Used to handle data recieved from reset forgotten password form
--     *
-      */
-     public function resetPasswordPostAction()
-     {
-@@ -632,17 +780,17 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-         try {
-             $this->_validateResetPasswordLinkToken($customerId, $resetPasswordLinkToken);
-         } catch (Exception $exception) {
--            $this->_getSession()->addError(Mage::helper('customer')->__('Your password reset link has expired.'));
-+            $this->_getSession()->addError($this->_getHelper('customer')->__('Your password reset link has expired.'));
-             $this->_redirect('*/*/');
-             return;
-         }
- 
-         $errorMessages = array();
-         if (iconv_strlen($password) <= 0) {
--            array_push($errorMessages, Mage::helper('customer')->__('New password field cannot be empty.'));
-+            array_push($errorMessages, $this->_getHelper('customer')->__('New password field cannot be empty.'));
-         }
-         /** @var $customer Mage_Customer_Model_Customer */
--        $customer = Mage::getModel('customer/customer')->load($customerId);
-+        $customer = $this->_getModel('customer/customer')->load($customerId);
- 
-         $customer->setPassword($password);
-         $customer->setConfirmation($passwordConfirmation);
-@@ -670,7 +818,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-             $this->_getSession()->unsetData(self::TOKEN_SESSION_NAME);
-             $this->_getSession()->unsetData(self::CUSTOMER_ID_SESSION_NAME);
- 
--            $this->_getSession()->addSuccess(Mage::helper('customer')->__('Your password has been updated.'));
-+            $this->_getSession()->addSuccess($this->_getHelper('customer')->__('Your password has been updated.'));
-             $this->_redirect('*/*/login');
-         } catch (Exception $exception) {
-             $this->_getSession()->addException($exception, $this->__('Cannot save a new password.'));
-@@ -694,18 +842,18 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-             || empty($customerId)
-             || $customerId < 0
-         ) {
--            throw Mage::exception('Mage_Core', Mage::helper('customer')->__('Invalid password reset token.'));
-+            throw Mage::exception('Mage_Core', $this->_getHelper('customer')->__('Invalid password reset token.'));
-         }
- 
-         /** @var $customer Mage_Customer_Model_Customer */
--        $customer = Mage::getModel('customer/customer')->load($customerId);
-+        $customer = $this->_getModel('customer/customer')->load($customerId);
-         if (!$customer || !$customer->getId()) {
--            throw Mage::exception('Mage_Core', Mage::helper('customer')->__('Wrong customer account specified.'));
-+            throw Mage::exception('Mage_Core', $this->_getHelper('customer')->__('Wrong customer account specified.'));
-         }
- 
-         $customerToken = $customer->getRpToken();
-         if (strcmp($customerToken, $resetPasswordLinkToken) != 0 || $customer->isResetPasswordLinkTokenExpired()) {
--            throw Mage::exception('Mage_Core', Mage::helper('customer')->__('Your password reset link has expired.'));
-+            throw Mage::exception('Mage_Core', $this->_getHelper('customer')->__('Your password reset link has expired.'));
-         }
-     }
- 
-@@ -727,7 +875,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-         if (!empty($data)) {
-             $customer->addData($data);
-         }
--        if ($this->getRequest()->getParam('changepass')==1){
-+        if ($this->getRequest()->getParam('changepass') == 1) {
-             $customer->setChangePassword(1);
-         }
- 
-@@ -750,7 +898,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-             $customer = $this->_getSession()->getCustomer();
- 
-             /** @var $customerForm Mage_Customer_Model_Form */
--            $customerForm = Mage::getModel('customer/form');
-+            $customerForm = $this->_getModel('customer/form');
-             $customerForm->setFormCode('customer_account_edit')
-                 ->setEntity($customer);
- 
-@@ -771,7 +919,7 @@ class Mage_Customer_AccountController extends Mage_Core_Controller_Front_Action
-                     $confPass   = $this->getRequest()->getPost('confirmation');
- 
-                     $oldPass = $this->_getSession()->getCustomer()->getPasswordHash();
--                    if (Mage::helper('core/string')->strpos($oldPass, ':')) {
-+                    if ($this->_getHelper('core/string')->strpos($oldPass, ':')) {
-                         list($_salt, $salt) = explode(':', $oldPass);
-                     } else {
-                         $salt = false;
 diff --git app/code/core/Mage/Customer/controllers/AddressController.php app/code/core/Mage/Customer/controllers/AddressController.php
-index a410ff8..259411a 100644
+index a2d00c0..c49e38a 100644
 --- app/code/core/Mage/Customer/controllers/AddressController.php
 +++ app/code/core/Mage/Customer/controllers/AddressController.php
 @@ -163,6 +163,9 @@ class Mage_Customer_AddressController extends Mage_Core_Controller_Front_Action
@@ -2338,7 +926,7 @@ index a410ff8..259411a 100644
  
          if ($addressId) {
 diff --git app/code/core/Mage/Dataflow/Model/Profile.php app/code/core/Mage/Dataflow/Model/Profile.php
-index 4a13a6d..c746f55 100644
+index 360d3a3..7519d17 100644
 --- app/code/core/Mage/Dataflow/Model/Profile.php
 +++ app/code/core/Mage/Dataflow/Model/Profile.php
 @@ -64,10 +64,14 @@ class Mage_Dataflow_Model_Profile extends Mage_Core_Model_Abstract
@@ -2375,7 +963,7 @@ index 4a13a6d..c746f55 100644
  
          $profileHistory = Mage::getModel('dataflow/profile_history');
 diff --git app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Links.php app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Links.php
-index 77ddb28..0e0d677 100644
+index 974512e..8de1073 100644
 --- app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Links.php
 +++ app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Links.php
 @@ -32,7 +32,7 @@
@@ -2484,20 +1072,19 @@ index 77ddb28..0e0d677 100644
      }
  }
 diff --git app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Samples.php app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Samples.php
-index 5c50d21..4d524b8 100644
+index a641214..b70a2db 100644
 --- app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Samples.php
 +++ app/code/core/Mage/Downloadable/Block/Adminhtml/Catalog/Product/Edit/Tab/Downloadable/Samples.php
-@@ -31,7 +31,8 @@
-  * @package     Mage_Downloadable
+@@ -32,7 +32,7 @@
   * @author      Magento Core Team <core@magentocommerce.com>
   */
--class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Samples extends Mage_Adminhtml_Block_Widget
-+class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Samples
+ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Samples
+-    extends Mage_Adminhtml_Block_Widget
 +    extends Mage_Uploader_Block_Single
  {
      /**
       * Class constructor
-@@ -147,6 +148,7 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
+@@ -148,6 +148,7 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
       */
      protected function _prepareLayout()
      {
@@ -2505,7 +1092,7 @@ index 5c50d21..4d524b8 100644
          $this->setChild(
              'upload_button',
              $this->getLayout()->createBlock('adminhtml/widget_button')
-@@ -157,6 +159,11 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
+@@ -158,6 +159,11 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
                      'onclick' => 'Downloadable.massUploadByType(\'samples\')'
                  ))
          );
@@ -2517,7 +1104,7 @@ index 5c50d21..4d524b8 100644
      }
  
      /**
-@@ -170,38 +177,59 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
+@@ -171,40 +177,59 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
      }
  
      /**
@@ -2528,7 +1115,9 @@ index 5c50d21..4d524b8 100644
       */
      public function getConfigJson()
      {
--        $this->getConfig()->setUrl(Mage::getModel('adminhtml/url')->addSessionParam()->getUrl('*/downloadable_file/upload', array('type' => 'samples', '_secure' => true)));
+-        $this->getConfig()->setUrl(Mage::getModel('adminhtml/url')
+-            ->addSessionParam()
+-            ->getUrl('*/downloadable_file/upload', array('type' => 'samples', '_secure' => true)));
 -        $this->getConfig()->setParams(array('form_key' => $this->getFormKey()));
 -        $this->getConfig()->setFileField('samples');
 -        $this->getConfig()->setFilters(array(
@@ -2599,7 +1188,7 @@ index 5c50d21..4d524b8 100644
      }
  }
 diff --git app/code/core/Mage/Downloadable/Helper/File.php app/code/core/Mage/Downloadable/Helper/File.php
-index 4e09b03..11a1a3b 100644
+index 05238b3..3c1be38 100644
 --- app/code/core/Mage/Downloadable/Helper/File.php
 +++ app/code/core/Mage/Downloadable/Helper/File.php
 @@ -33,15 +33,35 @@
@@ -3299,11 +1888,37 @@ index 4e09b03..11a1a3b 100644
 -            'xodt' => 'application/x-vnd.oasis.opendocument.spreadsheet'
 -        );
  }
+diff --git app/code/core/Mage/Oauth/Model/Server.php app/code/core/Mage/Oauth/Model/Server.php
+index 8f8fb45..99d2232 100644
+--- app/code/core/Mage/Oauth/Model/Server.php
++++ app/code/core/Mage/Oauth/Model/Server.php
+@@ -328,10 +328,10 @@ class Mage_Oauth_Model_Server
+             if (self::REQUEST_TOKEN == $this->_requestType) {
+                 $this->_validateVerifierParam();
+ 
+-                if ($this->_token->getVerifier() != $this->_protocolParams['oauth_verifier']) {
++                if (!hash_equals($this->_token->getVerifier(), $this->_protocolParams['oauth_verifier'])) {
+                     $this->_throwException('', self::ERR_VERIFIER_INVALID);
+                 }
+-                if ($this->_token->getConsumerId() != $this->_consumer->getId()) {
++                if (!hash_equals($this->_token->getConsumerId(), $this->_consumer->getId())) {
+                     $this->_throwException('', self::ERR_TOKEN_REJECTED);
+                 }
+                 if (Mage_Oauth_Model_Token::TYPE_REQUEST != $this->_token->getType()) {
+@@ -544,7 +544,7 @@ class Mage_Oauth_Model_Server
+             $this->_request->getScheme() . '://' . $this->_request->getHttpHost() . $this->_request->getRequestUri()
+         );
+ 
+-        if ($calculatedSign != $this->_protocolParams['oauth_signature']) {
++        if (!hash_equals($calculatedSign, $this->_protocolParams['oauth_signature'])) {
+             $this->_throwException('', self::ERR_SIGNATURE_INVALID);
+         }
+     }
 diff --git app/code/core/Mage/Paygate/Model/Authorizenet.php app/code/core/Mage/Paygate/Model/Authorizenet.php
-index 7678300..e288f2f 100644
+index 3887460..9b4d37e 100644
 --- app/code/core/Mage/Paygate/Model/Authorizenet.php
 +++ app/code/core/Mage/Paygate/Model/Authorizenet.php
-@@ -1218,8 +1218,10 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
+@@ -1258,8 +1258,10 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
          $uri = $this->getConfigData('cgi_url');
          $client->setUri($uri ? $uri : self::CGI_URL);
          $client->setConfig(array(
@@ -3316,7 +1931,7 @@ index 7678300..e288f2f 100644
              //'ssltransport' => 'tcp',
          ));
          foreach ($request->getData() as $key => $value) {
-@@ -1486,8 +1488,13 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
+@@ -1526,8 +1528,13 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
  
          $client = new Varien_Http_Client();
          $uri = $this->getConfigData('cgi_url_td');
@@ -3333,7 +1948,7 @@ index 7678300..e288f2f 100644
          $client->setMethod(Zend_Http_Client::POST);
          $client->setRawData($requestBody);
 diff --git app/code/core/Mage/Payment/Block/Info/Checkmo.php app/code/core/Mage/Payment/Block/Info/Checkmo.php
-index 3fd7ea3..470ef05 100644
+index 8a25271..064e5dc 100644
 --- app/code/core/Mage/Payment/Block/Info/Checkmo.php
 +++ app/code/core/Mage/Payment/Block/Info/Checkmo.php
 @@ -70,7 +70,13 @@ class Mage_Payment_Block_Info_Checkmo extends Mage_Payment_Block_Info
@@ -3360,8 +1975,48 @@ index 3fd7ea3..470ef05 100644
      public function toPdf()
      {
          $this->setTemplate('payment/info/pdf/checkmo.phtml');
+diff --git app/code/core/Mage/Paypal/Model/Express/Checkout.php app/code/core/Mage/Paypal/Model/Express/Checkout.php
+index f24f280..b491a3c 100644
+--- app/code/core/Mage/Paypal/Model/Express/Checkout.php
++++ app/code/core/Mage/Paypal/Model/Express/Checkout.php
+@@ -944,7 +944,7 @@ class Mage_Paypal_Model_Express_Checkout
+         $shipping   = $quote->isVirtual() ? null : $quote->getShippingAddress();
+ 
+         $customerId = $this->_lookupCustomerId();
+-        if ($customerId) {
++        if ($customerId && !$this->_customerEmailExists($quote->getCustomerEmail())) {
+             $this->getCustomerSession()->loginById($customerId);
+             return $this->_prepareCustomerQuote();
+         }
+@@ -1060,4 +1060,26 @@ class Mage_Paypal_Model_Express_Checkout
+     {
+         return $this->_customerSession;
+     }
++
++    /**
++     * Check if customer email exists
++     *
++     * @param string $email
++     * @return bool
++     */
++    protected function _customerEmailExists($email)
++    {
++        $result    = false;
++        $customer  = Mage::getModel('customer/customer');
++        $websiteId = Mage::app()->getStore()->getWebsiteId();
++        if (!is_null($websiteId)) {
++            $customer->setWebsiteId($websiteId);
++        }
++        $customer->loadByEmail($email);
++        if (!is_null($customer->getId())) {
++            $result = true;
++        }
++
++        return $result;
++    }
+ }
 diff --git app/code/core/Mage/Paypal/Model/Resource/Payment/Transaction.php app/code/core/Mage/Paypal/Model/Resource/Payment/Transaction.php
-index 981f4c3..7595593 100644
+index 858b8cf..82eecc1 100644
 --- app/code/core/Mage/Paypal/Model/Resource/Payment/Transaction.php
 +++ app/code/core/Mage/Paypal/Model/Resource/Payment/Transaction.php
 @@ -53,6 +53,30 @@ class Mage_Paypal_Model_Resource_Payment_Transaction extends Mage_Core_Model_Res
@@ -3395,49 +2050,8 @@ index 981f4c3..7595593 100644
       * Load the transaction object by specified txn_id
       *
       * @param Mage_Paypal_Model_Payment_Transaction $transaction
-diff --git app/code/core/Mage/ProductAlert/Block/Email/Abstract.php app/code/core/Mage/ProductAlert/Block/Email/Abstract.php
-index b6ff4b9..99b4fbf 100644
---- app/code/core/Mage/ProductAlert/Block/Email/Abstract.php
-+++ app/code/core/Mage/ProductAlert/Block/Email/Abstract.php
-@@ -135,4 +135,19 @@ abstract class Mage_ProductAlert_Block_Email_Abstract extends Mage_Core_Block_Te
-             '_store_to_url' => true
-         );
-     }
-+
-+    /**
-+     * Get filtered product short description to be inserted into mail
-+     *
-+     * @param Mage_Catalog_Model_Product $product
-+     * @return string|null
-+     */
-+    public function _getFilteredProductShortDescription(Mage_Catalog_Model_Product $product)
-+    {
-+        $shortDescription = $product->getShortDescription();
-+        if ($shortDescription) {
-+            $shortDescription = Mage::getSingleton('core/input_filter_maliciousCode')->filter($shortDescription);
-+        }
-+        return $shortDescription;
-+    }
- }
-diff --git app/code/core/Mage/Review/controllers/ProductController.php app/code/core/Mage/Review/controllers/ProductController.php
-index 82361cb..58e8ce6 100644
---- app/code/core/Mage/Review/controllers/ProductController.php
-+++ app/code/core/Mage/Review/controllers/ProductController.php
-@@ -149,6 +149,12 @@ class Mage_Review_ProductController extends Mage_Core_Controller_Front_Action
-      */
-     public function postAction()
-     {
-+        if (!$this->_validateFormKey()) {
-+            // returns to the product item page
-+            $this->_redirectReferer();
-+            return;
-+        }
-+
-         if ($data = Mage::getSingleton('review/session')->getFormData(true)) {
-             $rating = array();
-             if (isset($data['ratings']) && is_array($data['ratings'])) {
 diff --git app/code/core/Mage/Sales/Model/Resource/Order/Payment.php app/code/core/Mage/Sales/Model/Resource/Order/Payment.php
-index d2ae6eb..865888c 100755
+index 274205e..d01ef3f 100755
 --- app/code/core/Mage/Sales/Model/Resource/Order/Payment.php
 +++ app/code/core/Mage/Sales/Model/Resource/Order/Payment.php
 @@ -58,4 +58,28 @@ class Mage_Sales_Model_Resource_Order_Payment extends Mage_Sales_Model_Resource_
@@ -3470,7 +2084,7 @@ index d2ae6eb..865888c 100755
 +    }
  }
 diff --git app/code/core/Mage/Sales/Model/Resource/Order/Payment/Transaction.php app/code/core/Mage/Sales/Model/Resource/Order/Payment/Transaction.php
-index 928f7cc..40270aa 100755
+index 7ae5b34..5e5beb9 100755
 --- app/code/core/Mage/Sales/Model/Resource/Order/Payment/Transaction.php
 +++ app/code/core/Mage/Sales/Model/Resource/Order/Payment/Transaction.php
 @@ -53,6 +53,30 @@ class Mage_Sales_Model_Resource_Order_Payment_Transaction extends Mage_Sales_Mod
@@ -3505,7 +2119,7 @@ index 928f7cc..40270aa 100755
       * have to repeat the business logic to avoid accidental injection of wrong transactions
       *
 diff --git app/code/core/Mage/Sales/Model/Resource/Quote/Payment.php app/code/core/Mage/Sales/Model/Resource/Quote/Payment.php
-index c36456b..1808744 100755
+index 2dde7d8..39c9985 100755
 --- app/code/core/Mage/Sales/Model/Resource/Quote/Payment.php
 +++ app/code/core/Mage/Sales/Model/Resource/Quote/Payment.php
 @@ -51,4 +51,28 @@ class Mage_Sales_Model_Resource_Quote_Payment extends Mage_Sales_Model_Resource_
@@ -3538,7 +2152,7 @@ index c36456b..1808744 100755
 +    }
  }
 diff --git app/code/core/Mage/Sales/Model/Resource/Recurring/Profile.php app/code/core/Mage/Sales/Model/Resource/Recurring/Profile.php
-index 6c020f3..07bc6b3 100755
+index 7cb63cf..93ef916 100755
 --- app/code/core/Mage/Sales/Model/Resource/Recurring/Profile.php
 +++ app/code/core/Mage/Sales/Model/Resource/Recurring/Profile.php
 @@ -54,6 +54,33 @@ class Mage_Sales_Model_Resource_Recurring_Profile extends Mage_Sales_Model_Resou
@@ -5187,10 +3801,10 @@ index 0000000..4d7d405
 +    </uploader-uploading-progress>
 +</jstranslator>
 diff --git app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl.php app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl.php
-index c56d97e..1e2b399 100644
+index 78125d8..658e1e0 100644
 --- app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl.php
 +++ app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl.php
-@@ -564,8 +564,8 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl
+@@ -538,8 +538,8 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl
                  $ch = curl_init();
                  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                  curl_setopt($ch, CURLOPT_URL, $url);
@@ -5201,7 +3815,7 @@ index c56d97e..1e2b399 100644
                  curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
                  $responseBody = curl_exec($ch);
                  curl_close($ch);
-@@ -1071,8 +1071,8 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl
+@@ -1037,8 +1037,8 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl
              $ch = curl_init();
              curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
              curl_setopt($ch, CURLOPT_URL, $url);
@@ -5212,11 +3826,57 @@ index c56d97e..1e2b399 100644
              curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
              $responseBody = curl_exec($ch);
              $debugData['result'] = $responseBody;
+diff --git app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl/International.php app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl/International.php
+index f260742..7a67de3 100644
+--- app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl/International.php
++++ app/code/core/Mage/Usa/Model/Shipping/Carrier/Dhl/International.php
+@@ -837,7 +837,12 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl_International
+     {
+         $client = new Varien_Http_Client();
+         $client->setUri((string)$this->getConfigData('gateway_url'));
+-        $client->setConfig(array('maxredirects' => 0, 'timeout' => 30));
++        $client->setConfig(array(
++            'maxredirects' => 0,
++            'timeout' => 30,
++            'verifypeer' => $this->getConfigFlag('verify_peer'),
++            'verifyhost' => 2,
++        ));
+         $client->setRawData(utf8_encode($request));
+         return $client->request(Varien_Http_Client::POST)->getBody();
+     }
+@@ -1411,7 +1416,12 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl_International
+             try {
+                 $client = new Varien_Http_Client();
+                 $client->setUri((string)$this->getConfigData('gateway_url'));
+-                $client->setConfig(array('maxredirects' => 0, 'timeout' => 30));
++                $client->setConfig(array(
++                    'maxredirects' => 0,
++                    'timeout' => 30,
++                    'verifypeer' => $this->getConfigFlag('verify_peer'),
++                    'verifyhost' => 2,
++                ));
+                 $client->setRawData($request);
+                 $responseBody = $client->request(Varien_Http_Client::POST)->getBody();
+                 $debugData['result'] = $responseBody;
+@@ -1603,7 +1613,12 @@ class Mage_Usa_Model_Shipping_Carrier_Dhl_International
+             try {
+                 $client = new Varien_Http_Client();
+                 $client->setUri((string)$this->getConfigData('gateway_url'));
+-                $client->setConfig(array('maxredirects' => 0, 'timeout' => 30));
++                $client->setConfig(array(
++                    'maxredirects' => 0,
++                    'timeout' => 30,
++                    'verifypeer' => $this->getConfigFlag('verify_peer'),
++                    'verifyhost' => 2,
++                ));
+                 $client->setRawData($request);
+                 $responseBody = $client->request(Varien_Http_Client::POST)->getBody();
+                 $debugData['result'] = $responseBody;
 diff --git app/code/core/Mage/Usa/Model/Shipping/Carrier/Fedex.php app/code/core/Mage/Usa/Model/Shipping/Carrier/Fedex.php
-index d567b6e..c263b19 100644
+index 188bec6..aea68f7 100644
 --- app/code/core/Mage/Usa/Model/Shipping/Carrier/Fedex.php
 +++ app/code/core/Mage/Usa/Model/Shipping/Carrier/Fedex.php
-@@ -455,6 +455,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex
+@@ -578,6 +578,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex
      /**
       * Get xml quotes
       *
@@ -5224,7 +3884,7 @@ index d567b6e..c263b19 100644
       * @return Mage_Shipping_Model_Rate_Result
       */
      protected function _getXmlQuotes()
-@@ -514,8 +515,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex
+@@ -637,8 +638,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex
                  $ch = curl_init();
                  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                  curl_setopt($ch, CURLOPT_URL, $url);
@@ -5236,10 +3896,10 @@ index d567b6e..c263b19 100644
                  $responseBody = curl_exec($ch);
                  curl_close ($ch);
 diff --git app/code/core/Mage/Usa/Model/Shipping/Carrier/Ups.php app/code/core/Mage/Usa/Model/Shipping/Carrier/Ups.php
-index 3819a2e..97b8c73 100644
+index 7676856..f185059 100644
 --- app/code/core/Mage/Usa/Model/Shipping/Carrier/Ups.php
 +++ app/code/core/Mage/Usa/Model/Shipping/Carrier/Ups.php
-@@ -929,7 +929,7 @@ XMLRequest;
+@@ -937,7 +937,7 @@ XMLRequest;
                  curl_setopt($ch, CURLOPT_POST, 1);
                  curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlRequest);
                  curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -5248,7 +3908,7 @@ index 3819a2e..97b8c73 100644
                  $xmlResponse = curl_exec ($ch);
  
                  $debugData['result'] = $xmlResponse;
-@@ -1567,7 +1567,7 @@ XMLAuth;
+@@ -1578,7 +1578,7 @@ XMLAuth;
              curl_setopt($ch, CURLOPT_POST, 1);
              curl_setopt($ch, CURLOPT_POSTFIELDS, $this->_xmlAccessRequest . $xmlRequest->asXML());
              curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -5257,7 +3917,7 @@ index 3819a2e..97b8c73 100644
              $xmlResponse = curl_exec ($ch);
  
              $debugData['result'] = $xmlResponse;
-@@ -1625,7 +1625,7 @@ XMLAuth;
+@@ -1636,7 +1636,7 @@ XMLAuth;
              curl_setopt($ch, CURLOPT_POST, 1);
              curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlRequest);
              curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -5267,10 +3927,10 @@ index 3819a2e..97b8c73 100644
              if ($xmlResponse === false) {
                  throw new Exception(curl_error($ch));
 diff --git app/code/core/Mage/Usa/etc/config.xml app/code/core/Mage/Usa/etc/config.xml
-index aeed112..8e66d89 100644
+index cb53c4d..3f9cf5d 100644
 --- app/code/core/Mage/Usa/etc/config.xml
 +++ app/code/core/Mage/Usa/etc/config.xml
-@@ -104,6 +104,7 @@
+@@ -114,6 +114,7 @@
                  <dutypaymenttype>R</dutypaymenttype>
                  <free_method>G</free_method>
                  <gateway_url>https://eCommerce.airborne.com/ApiLandingTest.asp</gateway_url>
@@ -5278,19 +3938,27 @@ index aeed112..8e66d89 100644
                  <id backend_model="adminhtml/system_config_backend_encrypted"/>
                  <model>usa/shipping_carrier_dhl</model>
                  <password backend_model="adminhtml/system_config_backend_encrypted"/>
-@@ -168,6 +169,7 @@
-                 <negotiated_active>0</negotiated_active>
-                 <mode_xml>1</mode_xml>
-                 <type>UPS</type>
+@@ -169,6 +170,7 @@
+                 <tracking_xml_url>https://onlinetools.ups.com/ups.app/xml/Track</tracking_xml_url>
+                 <shipconfirm_xml_url>https://onlinetools.ups.com/ups.app/xml/ShipConfirm</shipconfirm_xml_url>
+                 <shipaccept_xml_url>https://onlinetools.ups.com/ups.app/xml/ShipAccept</shipaccept_xml_url>
 +                <verify_peer>0</verify_peer>
-             </ups>
-             <usps>
-                 <active>0</active>
+                 <handling>0</handling>
+                 <model>usa/shipping_carrier_ups</model>
+                 <pickup>CC</pickup>
+@@ -219,6 +221,7 @@
+                 <doc_methods>2,5,6,7,9,B,C,D,U,K,L,G,W,I,N,O,R,S,T,X</doc_methods>
+                 <free_method>G</free_method>
+                 <gateway_url>https://xmlpi-ea.dhl.com/XMLShippingServlet</gateway_url>
++                <verify_peer>0</verify_peer>
+                 <id backend_model="adminhtml/system_config_backend_encrypted"/>
+                 <password backend_model="adminhtml/system_config_backend_encrypted"/>
+                 <shipment_type>N</shipment_type>
 diff --git app/code/core/Mage/Usa/etc/system.xml app/code/core/Mage/Usa/etc/system.xml
-index eecf439..d4f2bc4 100644
+index 0c53cd9..923ff53 100644
 --- app/code/core/Mage/Usa/etc/system.xml
 +++ app/code/core/Mage/Usa/etc/system.xml
-@@ -129,6 +129,15 @@
+@@ -130,6 +130,15 @@
                              <show_in_website>1</show_in_website>
                              <show_in_store>0</show_in_store>
                          </gateway_url>
@@ -5306,7 +3974,7 @@ index eecf439..d4f2bc4 100644
                          <handling_type translate="label">
                              <label>Calculate Handling Fee</label>
                              <frontend_type>select</frontend_type>
-@@ -691,6 +700,15 @@
+@@ -744,6 +753,15 @@
                              <show_in_website>1</show_in_website>
                              <show_in_store>0</show_in_store>
                          </gateway_url>
@@ -5322,67 +3990,27 @@ index eecf439..d4f2bc4 100644
                          <gateway_xml_url translate="label">
                              <label>Gateway XML URL</label>
                              <frontend_type>text</frontend_type>
-diff --git app/code/core/Mage/Wishlist/Controller/Abstract.php app/code/core/Mage/Wishlist/Controller/Abstract.php
-index aa04088..cfd4c9a 100644
---- app/code/core/Mage/Wishlist/Controller/Abstract.php
-+++ app/code/core/Mage/Wishlist/Controller/Abstract.php
-@@ -71,10 +71,15 @@ abstract class Mage_Wishlist_Controller_Abstract extends Mage_Core_Controller_Fr
-      */
-     public function allcartAction()
-     {
-+        if (!$this->_validateFormKey()) {
-+            $this->_forward('noRoute');
-+            return;
-+        }
-+
-         $wishlist   = $this->_getWishlist();
-         if (!$wishlist) {
-             $this->_forward('noRoute');
--            return ;
-+            return;
-         }
-         $isOwner    = $wishlist->isOwner(Mage::getSingleton('customer/session')->getCustomerId());
- 
-@@ -87,7 +92,9 @@ abstract class Mage_Wishlist_Controller_Abstract extends Mage_Core_Controller_Fr
-         $collection = $wishlist->getItemCollection()
-                 ->setVisibilityFilter();
- 
--        $qtys = $this->getRequest()->getParam('qty');
-+        $qtysString = $this->getRequest()->getParam('qty');
-+        $qtys =  array_filter(json_decode($qtysString), 'strlen');
-+
-         foreach ($collection as $item) {
-             /** @var Mage_Wishlist_Model_Item */
-             try {
+@@ -1264,6 +1282,15 @@
+                             <show_in_website>1</show_in_website>
+                             <show_in_store>0</show_in_store>
+                         </gateway_url>
++                        <verify_peer translate="label">
++                            <label>Enable SSL Verification</label>
++                            <frontend_type>select</frontend_type>
++                            <source_model>adminhtml/system_config_source_yesno</source_model>
++                            <sort_order>30</sort_order>
++                            <show_in_default>1</show_in_default>
++                            <show_in_website>1</show_in_website>
++                            <show_in_store>0</show_in_store>
++                        </verify_peer>
+                         <title translate="label">
+                             <label>Title</label>
+                             <frontend_type>text</frontend_type>
 diff --git app/code/core/Mage/Wishlist/Helper/Data.php app/code/core/Mage/Wishlist/Helper/Data.php
-index 3940e0d..f3d4818 100644
+index f480d47..039f040 100644
 --- app/code/core/Mage/Wishlist/Helper/Data.php
 +++ app/code/core/Mage/Wishlist/Helper/Data.php
-@@ -105,11 +105,9 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
-         if (is_null($this->_wishlist)) {
-             if (Mage::registry('shared_wishlist')) {
-                 $this->_wishlist = Mage::registry('shared_wishlist');
--            }
--            elseif (Mage::registry('wishlist')) {
-+            } else if (Mage::registry('wishlist')) {
-                 $this->_wishlist = Mage::registry('wishlist');
--            }
--            else {
-+            } else {
-                 $this->_wishlist = Mage::getModel('wishlist/wishlist');
-                 if ($this->_getCustomerSession()->isLoggedIn()) {
-                     $this->_wishlist->loadByCustomer($this->_getCustomerSession()->getCustomer());
-@@ -223,8 +221,7 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
-         if ($product) {
-             if ($product->isVisibleInSiteVisibility()) {
-                 $storeId = $product->getStoreId();
--            }
--            else if ($product->hasUrlDataObject()) {
-+            } else if ($product->hasUrlDataObject()) {
-                 $storeId = $product->getUrlDataObject()->getStoreId();
-             }
-         }
-@@ -240,7 +237,10 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
+@@ -274,7 +274,10 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
      public function getRemoveUrl($item)
      {
          return $this->_getUrl('wishlist/index/remove',
@@ -5394,272 +4022,22 @@ index 3940e0d..f3d4818 100644
          );
      }
  
-@@ -312,40 +312,62 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
-             $productId = $item->getProductId();
-         }
- 
--        if ($productId) {
--            $params['product'] = $productId;
--            return $this->_getUrlStore($item)->getUrl('wishlist/index/add', $params);
-+        if (!$productId) {
-+            return false;
-         }
--
--        return false;
-+        $params['product'] = $productId;
-+        $params[Mage_Core_Model_Url::FORM_KEY] = $this->_getSingletonModel('core/session')->getFormKey();
-+        return $this->_getUrlStore($item)->getUrl('wishlist/index/add', $params);
-     }
- 
-     /**
--     * Retrieve URL for adding item to shoping cart
-+     * Retrieve URL for adding item to shopping cart
-      *
-      * @param string|Mage_Catalog_Model_Product|Mage_Wishlist_Model_Item $item
-      * @return  string
-      */
-     public function getAddToCartUrl($item)
-     {
--        $urlParamName = Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED;
--        $continueUrl  = Mage::helper('core')->urlEncode(
--            Mage::getUrl('*/*/*', array(
-+        $continueUrl  = $this->_getHelperInstance('core')->urlEncode(
-+            $this->_getUrl('*/*/*', array(
-                 '_current'      => true,
-                 '_use_rewrite'  => true,
-                 '_store_to_url' => true,
-             ))
-         );
--
--        $urlParamName = Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED;
-         $params = array(
-             'item' => is_string($item) ? $item : $item->getWishlistItemId(),
--            $urlParamName => $continueUrl
-+            Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED => $continueUrl,
-+            Mage_Core_Model_Url::FORM_KEY => $this->_getSingletonModel('core/session')->getFormKey()
-         );
-+
-         return $this->_getUrlStore($item)->getUrl('wishlist/index/cart', $params);
-     }
- 
-     /**
-+     * Return helper instance
-+     *
-+     * @param string $helperName
-+     * @return Mage_Core_Helper_Abstract
-+     */
-+    protected function _getHelperInstance($helperName)
-+    {
-+        return Mage::helper($helperName);
-+    }
-+
-+    /**
-+     * Return model instance
-+     *
-+     * @param string $className
-+     * @param array $arguments
-+     * @return Mage_Core_Model_Abstract
-+     */
-+    protected function _getSingletonModel($className, $arguments = array())
-+    {
-+        return Mage::getSingleton($className, $arguments);
-+    }
-+
-+    /**
-      * Retrieve URL for adding item to shoping cart from shared wishlist
-      *
-      * @param string|Mage_Catalog_Model_Product|Mage_Wishlist_Model_Item $item
-@@ -359,10 +381,10 @@ class Mage_Wishlist_Helper_Data extends Mage_Core_Helper_Abstract
-             '_store_to_url' => true,
-         )));
- 
--        $urlParamName = Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED;
-         $params = array(
-             'item' => is_string($item) ? $item : $item->getWishlistItemId(),
--            $urlParamName => $continueUrl
-+            Mage_Core_Controller_Front_Action::PARAM_NAME_URL_ENCODED => $continueUrl,
-+            Mage_Core_Model_Url::FORM_KEY => $this->_getSingletonModel('core/session')->getFormKey()
-         );
-         return $this->_getUrlStore($item)->getUrl('wishlist/shared/cart', $params);
-     }
 diff --git app/code/core/Mage/Wishlist/controllers/IndexController.php app/code/core/Mage/Wishlist/controllers/IndexController.php
-index 90441d1..396527b 100644
+index b18c718..8b9577e 100644
 --- app/code/core/Mage/Wishlist/controllers/IndexController.php
 +++ app/code/core/Mage/Wishlist/controllers/IndexController.php
-@@ -48,6 +48,11 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-      */
-     protected $_skipAuthentication = false;
- 
-+    /**
-+     * Extend preDispatch
-+     *
-+     * @return Mage_Core_Controller_Front_Action|void
-+     */
-     public function preDispatch()
-     {
-         parent::preDispatch();
-@@ -136,14 +141,28 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-      */
-     public function addAction()
-     {
--        $session = Mage::getSingleton('customer/session');
-+        if (!$this->_validateFormKey()) {
-+            return $this->_redirect('*/*');
-+        }
-+        $this->_addItemToWishList();
-+    }
-+
-+    /**
-+     * Add the item to wish list
-+     *
-+     * @return Mage_Core_Controller_Varien_Action|void
-+     */
-+    protected function _addItemToWishList()
-+    {
-         $wishlist = $this->_getWishlist();
-         if (!$wishlist) {
-             $this->_redirect('*/');
-             return;
-         }
- 
--        $productId = (int) $this->getRequest()->getParam('product');
-+        $session = Mage::getSingleton('customer/session');
-+
-+        $productId = (int)$this->getRequest()->getParam('product');
-         if (!$productId) {
-             $this->_redirect('*/');
-             return;
-@@ -173,9 +192,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-             Mage::dispatchEvent(
-                 'wishlist_add_product',
-                 array(
--                    'wishlist'  => $wishlist,
--                    'product'   => $product,
--                    'item'      => $result
-+                    'wishlist' => $wishlist,
-+                    'product' => $product,
-+                    'item' => $result
-                 )
-             );
- 
-@@ -197,11 +216,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-                 $product->getName(), Mage::helper('core')->escapeUrl($referer)
-             );
-             $session->addSuccess($message);
--        }
--        catch (Mage_Core_Exception $e) {
-+        } catch (Mage_Core_Exception $e) {
-             $session->addError($this->__('An error occurred while adding item to wishlist: %s', $e->getMessage()));
--        }
--        catch (Exception $e) {
-+        } catch (Exception $e) {
-             $session->addError($this->__('An error occurred while adding item to wishlist.'));
-         }
- 
-@@ -311,7 +328,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-             return $this->_redirect('*/*/');
-         }
-         $post = $this->getRequest()->getPost();
--        if($post && isset($post['description']) && is_array($post['description'])) {
-+        if ($post && isset($post['description']) && is_array($post['description'])) {
-             $wishlist = $this->_getWishlist();
-             $updatedItems = 0;
- 
-@@ -368,8 +385,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-                 try {
-                     $wishlist->save();
-                     Mage::helper('wishlist')->calculate();
--                }
--                catch (Exception $e) {
-+                } catch (Exception $e) {
-                     Mage::getSingleton('customer/session')->addError($this->__('Can\'t update wishlist'));
-                 }
-             }
-@@ -387,6 +403,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
+@@ -434,6 +434,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
       */
      public function removeAction()
      {
 +        if (!$this->_validateFormKey()) {
 +            return $this->_redirect('*/*');
 +        }
-         $wishlist = $this->_getWishlist();
          $id = (int) $this->getRequest()->getParam('item');
          $item = Mage::getModel('wishlist/item')->load($id);
-@@ -401,7 +420,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-                     $this->__('An error occurred while deleting the item from wishlist: %s', $e->getMessage())
-                 );
-             }
--            catch(Exception $e) {
-+            catch (Exception $e) {
-                 Mage::getSingleton('customer/session')->addError(
-                     $this->__('An error occurred while deleting the item from wishlist.')
-                 );
-@@ -422,6 +441,9 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-      */
-     public function cartAction()
-     {
-+        if (!$this->_validateFormKey()) {
-+            return $this->_redirect('*/*');
-+        }
-         $wishlist   = $this->_getWishlist();
-         if (!$wishlist) {
-             return $this->_redirect('*/*');
-@@ -546,7 +568,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-             /*if share rss added rss feed to email template*/
-             if ($this->getRequest()->getParam('rss_url')) {
-                 $rss_url = $this->getLayout()->createBlock('wishlist/share_email_rss')->toHtml();
--                $message .=$rss_url;
-+                $message .= $rss_url;
-             }
-             $wishlistBlock = $this->getLayout()->createBlock('wishlist/share_email_items')->toHtml();
- 
-@@ -555,19 +577,19 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-             $emailModel = Mage::getModel('core/email_template');
- 
-             $sharingCode = $wishlist->getSharingCode();
--            foreach($emails as $email) {
-+            foreach ($emails as $email) {
-                 $emailModel->sendTransactional(
-                     Mage::getStoreConfig('wishlist/email/email_template'),
-                     Mage::getStoreConfig('wishlist/email/email_identity'),
-                     $email,
-                     null,
-                     array(
--                        'customer'      => $customer,
--                        'salable'       => $wishlist->isSalable() ? 'yes' : '',
--                        'items'         => $wishlistBlock,
--                        'addAllLink'    => Mage::getUrl('*/shared/allcart', array('code' => $sharingCode)),
--                        'viewOnSiteLink'=> Mage::getUrl('*/shared/index', array('code' => $sharingCode)),
--                        'message'       => $message
-+                        'customer'       => $customer,
-+                        'salable'        => $wishlist->isSalable() ? 'yes' : '',
-+                        'items'          => $wishlistBlock,
-+                        'addAllLink'     => Mage::getUrl('*/shared/allcart', array('code' => $sharingCode)),
-+                        'viewOnSiteLink' => Mage::getUrl('*/shared/index', array('code' => $sharingCode)),
-+                        'message'        => $message
-                     )
-                 );
-             }
-@@ -577,7 +599,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
- 
-             $translate->setTranslateInline(true);
- 
--            Mage::dispatchEvent('wishlist_share', array('wishlist'=>$wishlist));
-+            Mage::dispatchEvent('wishlist_share', array('wishlist' => $wishlist));
-             Mage::getSingleton('customer/session')->addSuccess(
-                 $this->__('Your Wishlist has been shared.')
-             );
-@@ -616,7 +638,7 @@ class Mage_Wishlist_IndexController extends Mage_Wishlist_Controller_Abstract
-                     ));
-                 }
-             }
--        } catch(Exception $e) {
-+        } catch (Exception $e) {
-             $this->_forward('noRoute');
-         }
-         exit(0);
+         if (!$item->getId()) {
 diff --git app/code/core/Mage/XmlConnect/Block/Adminhtml/Mobile/Edit/Tab/Design.php app/code/core/Mage/XmlConnect/Block/Adminhtml/Mobile/Edit/Tab/Design.php
-index 5ef12f4..ab54d20 100644
+index c399282..d2a6192 100644
 --- app/code/core/Mage/XmlConnect/Block/Adminhtml/Mobile/Edit/Tab/Design.php
 +++ app/code/core/Mage/XmlConnect/Block/Adminhtml/Mobile/Edit/Tab/Design.php
 @@ -95,4 +95,21 @@ class Mage_XmlConnect_Block_Adminhtml_Mobile_Edit_Tab_Design
@@ -5684,8 +4062,162 @@ index 5ef12f4..ab54d20 100644
 +            ))->toHtml();
 +    }
  }
+diff --git app/code/core/Mage/XmlConnect/Block/Adminhtml/Mobile/Edit/Tab/Design/Images.php app/code/core/Mage/XmlConnect/Block/Adminhtml/Mobile/Edit/Tab/Design/Images.php
+index 457f621..1b3847e 100644
+--- app/code/core/Mage/XmlConnect/Block/Adminhtml/Mobile/Edit/Tab/Design/Images.php
++++ app/code/core/Mage/XmlConnect/Block/Adminhtml/Mobile/Edit/Tab/Design/Images.php
+@@ -31,7 +31,7 @@
+  * @package     Mage_Xmlconnect
+  * @author      Magento Core Team <core@magentocommerce.com>
+  */
+-class Mage_XmlConnect_Block_Adminhtml_Mobile_Edit_Tab_Design_Images extends Mage_Adminhtml_Block_Template
++class Mage_XmlConnect_Block_Adminhtml_Mobile_Edit_Tab_Design_Images extends Mage_Uploader_Block_Single
+ {
+     /**
+      * Init block, set preview template
+@@ -116,42 +116,56 @@ class Mage_XmlConnect_Block_Adminhtml_Mobile_Edit_Tab_Design_Images extends Mage
+             'application_id' => $this->getApplicationId());
+ 
+         if (isset($image['image_id'])) {
+-            $this->getConfig()->setFileSave(Mage::getModel('xmlconnect/images')->getImageUrl($image['image_file']))
+-                ->setImageId($image['image_id']);
+-
+-            $this->getConfig()->setThumbnail(Mage::getModel('xmlconnect/images')->getCustomSizeImageUrl(
++            $this->getMiscConfig()->setData('file_save',
++                Mage::getModel('xmlconnect/images')->getImageUrl($image['image_file']))
++                    ->setImageId($image['image_id']
++            )->setData('thumbnail',
++                Mage::getModel('xmlconnect/images')->getCustomSizeImageUrl(
+                 $image['image_file'],
+                 Mage_XmlConnect_Helper_Data::THUMBNAIL_IMAGE_WIDTH,
+                 Mage_XmlConnect_Helper_Data::THUMBNAIL_IMAGE_HEIGHT
+-            ))->setImageId($image['image_id']);
++            ))->setData('image_id', $image['image_id']);
+ 
+             $imageActionData = Mage::helper('xmlconnect')->getApplication()->getImageActionModel()
+                 ->getImageActionData($image['image_id']);
+             if ($imageActionData) {
+-                $this->getConfig()->setImageActionData($imageActionData);
++                $this->getMiscConfig()->setData('image_action_data', $imageActionData);
+             }
+         }
+ 
+-        if (isset($image['show_uploader'])) {
+-            $this->getConfig()->setShowUploader($image['show_uploader']);
+-        }
++        $this->getUploaderConfig()
++            ->setFileParameterName($image['image_type'])
++            ->setTarget(
++                Mage::getModel('adminhtml/url')->addSessionParam()->getUrl('*/*/uploadimages', $params)
++            );
++
++        $this->getButtonConfig()
++            ->setAttributes(
++                array('accept' => $this->getButtonConfig()->getMimeTypesByExtensions('gif, jpg, jpeg, png'))
++            );
++        $this->getMiscConfig()
++            ->setReplaceBrowseWithRemove(true)
++            ->setData('image_count', $this->getImageCount())
++        ;
++
++        return parent::getJsonConfig();
++    }
+ 
+-        $this->getConfig()->setUrl(
+-            Mage::getModel('adminhtml/url')->addSessionParam()->getUrl('*/*/uploadimages', $params)
+-        );
+-        $this->getConfig()->setParams(array('form_key' => $this->getFormKey()));
+-        $this->getConfig()->setFileField($image['image_type']);
+-        $this->getConfig()->setFilters(array(
+-            'images' => array(
+-                'label' => Mage::helper('adminhtml')->__('Images (.gif, .jpg, .png)'),
+-                'files' => array('*.gif', '*.jpg','*.jpeg', '*.png')
+-        )));
+-        $this->getConfig()->setReplaceBrowseWithRemove(true);
+-        $this->getConfig()->setWidth('32');
+-        $this->getConfig()->setHideUploadButton(true);
+-        $this->getConfig()->setImageCount($this->getImageCount());
+-
+-        return $this->getConfig()->getData();
++    /**
++     * Prepare layout, change button and set front-end element ids mapping
++     *
++     * @return $this
++     */
++    protected function _prepareLayout()
++    {
++        parent::_prepareLayout();
++
++        $this->_addElementIdsMapping(array(
++            'container'     => $this->getHtmlId() . '-new',
++            'idToReplace'   => $this->getHtmlId(),
++        ));
++
++        return $this;
+     }
+ 
+     /**
+@@ -168,15 +182,12 @@ class Mage_XmlConnect_Block_Adminhtml_Mobile_Edit_Tab_Design_Images extends Mage
+     /**
+      * Retrieve image config object
+      *
+-     * @return Varien_Object
++     * @deprecated
++     * @return $this
+      */
+     public function getConfig()
+     {
+-        if(is_null($this->_config)) {
+-            $this->_config = new Varien_Object();
+-        }
+-
+-        return $this->_config;
++        return $this;
+     }
+ 
+     /**
+@@ -186,7 +197,13 @@ class Mage_XmlConnect_Block_Adminhtml_Mobile_Edit_Tab_Design_Images extends Mage
+      */
+     public function clearConfig()
+     {
+-        $this->_config = null;
++        $this->getMiscConfig()
++            ->unsetData('image_id')
++            ->unsetData('file_save')
++            ->unsetData('thumbnail')
++            ->unsetData('image_count')
++        ;
++        $this->getUploaderConfig()->unsetFileParameterName();
+         return $this;
+     }
+ }
+diff --git app/code/core/Mage/XmlConnect/controllers/Adminhtml/MobileController.php app/code/core/Mage/XmlConnect/controllers/Adminhtml/MobileController.php
+index c047ef8..3d63c23 100644
+--- app/code/core/Mage/XmlConnect/controllers/Adminhtml/MobileController.php
++++ app/code/core/Mage/XmlConnect/controllers/Adminhtml/MobileController.php
+@@ -337,7 +337,7 @@ class Mage_XmlConnect_Adminhtml_MobileController extends Mage_Adminhtml_Controll
+             curl_setopt($curlHandler, CURLOPT_POSTFIELDS, $params);
+             curl_setopt($curlHandler, CURLOPT_SSL_VERIFYHOST, 2);
+             curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, 1);
+-            curl_setopt($curlHandler, CURLOPT_SSL_VERIFYPEER, 0);
++            curl_setopt($curlHandler, CURLOPT_SSL_VERIFYPEER, 1);
+             curl_setopt($curlHandler, CURLOPT_TIMEOUT, 60);
+ 
+             // Execute the request.
+@@ -1377,9 +1377,9 @@ class Mage_XmlConnect_Adminhtml_MobileController extends Mage_Adminhtml_Controll
+     public function uploadImagesAction()
+     {
+         $data = $this->getRequest()->getParams();
+-        if (isset($data['Filename'])) {
++        if (isset($data['flowFilename'])) {
+             // Add random string to uploaded file new
+-            $newFileName = Mage::helper('core')->getRandomString(5) . '_' . $data['Filename'];
++            $newFileName = Mage::helper('core')->getRandomString(5) . '_' . $data['flowFilename'];
+         }
+         try {
+             $this->_initApp();
 diff --git app/design/adminhtml/default/default/layout/cms.xml app/design/adminhtml/default/default/layout/cms.xml
-index f822d9b..13b37e1 100644
+index 6d3ad79..37a3ad0 100644
 --- app/design/adminhtml/default/default/layout/cms.xml
 +++ app/design/adminhtml/default/default/layout/cms.xml
 @@ -82,7 +82,9 @@
@@ -5700,10 +4232,10 @@ index f822d9b..13b37e1 100644
              </block>
          </reference>
 diff --git app/design/adminhtml/default/default/layout/main.xml app/design/adminhtml/default/default/layout/main.xml
-index 77af339..2a17e95 100644
+index 5d0d9de..a8b13ff 100644
 --- app/design/adminhtml/default/default/layout/main.xml
 +++ app/design/adminhtml/default/default/layout/main.xml
-@@ -167,9 +167,10 @@ Layout for editor element
+@@ -171,9 +171,10 @@ Layout for editor element
              <action method="setCanLoadExtJs"><flag>1</flag></action>
              <action method="addJs"><script>mage/adminhtml/variables.js</script></action>
              <action method="addJs"><script>mage/adminhtml/wysiwyg/widget.js</script></action>
@@ -5718,10 +4250,10 @@ index 77af339..2a17e95 100644
              <action method="addJs"><script>prototype/window.js</script></action>
              <action method="addItem"><type>js_css</type><name>prototype/windows/themes/default.css</name></action>
 diff --git app/design/adminhtml/default/default/layout/xmlconnect.xml app/design/adminhtml/default/default/layout/xmlconnect.xml
-index 3bdea0a..fecec8c 100644
+index b737793..aa20743 100644
 --- app/design/adminhtml/default/default/layout/xmlconnect.xml
 +++ app/design/adminhtml/default/default/layout/xmlconnect.xml
-@@ -74,9 +74,10 @@
+@@ -75,9 +75,10 @@
              <action method="setCanLoadExtJs"><flag>1</flag></action>
              <action method="addJs"><script>mage/adminhtml/variables.js</script></action>
              <action method="addJs"><script>mage/adminhtml/wysiwyg/widget.js</script></action>
@@ -5735,8 +4267,16 @@ index 3bdea0a..fecec8c 100644
              <action method="addJs"><script>mage/adminhtml/browser.js</script></action>
              <action method="addJs"><script>prototype/window.js</script></action>
              <action method="addItem"><type>js_css</type><name>prototype/windows/themes/default.css</name></action>
+@@ -104,7 +105,6 @@
+                 <block type="xmlconnect/adminhtml_mobile_edit_tab_offlineCatalog" name="mobile_edit_tab_offlineCatalog"/>
+                 <block type="xmlconnect/adminhtml_mobile_edit_tab_general" name="mobile_edit_tab_general"/>
+                 <block type="xmlconnect/adminhtml_mobile_edit_tab_design" name="mobile_edit_tab_design">
+-                    <block type="adminhtml/media_uploader" name="adminhtml_media_uploader" as="media_uploader"/>
+                     <block type="xmlconnect/adminhtml_mobile_edit_tab_design_images" name="mobile_edit_tab_design_images" as="design_images" />
+                     <block type="xmlconnect/adminhtml_mobile_edit_tab_design_accordion" name="mobile_edit_tab_design_accordion" as="design_accordion">
+                         <block type="xmlconnect/adminhtml_mobile_edit_tab_design_accordion_themes" name="accordion_themes" />
 diff --git app/design/adminhtml/default/default/template/catalog/product/helper/gallery.phtml app/design/adminhtml/default/default/template/catalog/product/helper/gallery.phtml
-index a9a6b6f..7e9bedf 100644
+index 47ff157..51175ed 100644
 --- app/design/adminhtml/default/default/template/catalog/product/helper/gallery.phtml
 +++ app/design/adminhtml/default/default/template/catalog/product/helper/gallery.phtml
 @@ -108,6 +108,7 @@ $_block = $this;
@@ -5748,7 +4288,7 @@ index a9a6b6f..7e9bedf 100644
              </td>
          </tr>
 @@ -120,6 +121,6 @@ $_block = $this;
- <input type="hidden" id="<?php echo $_block->getHtmlId() ?>_save_image" name="<?php echo $_block->getElement()->getName() ?>[values]" value="<?php echo $_block->htmlEscape($_block->getImagesValuesJson()) ?>" />
+ <input type="hidden" id="<?php echo $_block->getHtmlId() ?>_save_image" name="<?php echo $_block->getElement()->getName() ?>[values]" value="<?php echo $_block->escapeHtml($_block->getImagesValuesJson()) ?>" />
  <script type="text/javascript">
  //<![CDATA[
 -var <?php echo $_block->getJsObjectName(); ?> = new Product.Gallery('<?php echo $_block->getHtmlId() ?>', <?php if ($_block->getElement()->getReadonly()):?>null<?php else:?><?php echo $_block->getUploader()->getJsObjectName() ?><?php endif;?>, <?php echo $_block->getImageTypesJson() ?>);
@@ -5756,10 +4296,10 @@ index a9a6b6f..7e9bedf 100644
  //]]>
  </script>
 diff --git app/design/adminhtml/default/default/template/cms/browser/content/uploader.phtml app/design/adminhtml/default/default/template/cms/browser/content/uploader.phtml
-index 3f9cb77..94a08d6 100644
+index 1cdaccc..32cc7b2 100644
 --- app/design/adminhtml/default/default/template/cms/browser/content/uploader.phtml
 +++ app/design/adminhtml/default/default/template/cms/browser/content/uploader.phtml
-@@ -24,51 +24,8 @@
+@@ -24,48 +24,8 @@
   * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
   */
  ?>
@@ -5770,9 +4310,6 @@ index 3f9cb77..94a08d6 100644
 - * @see Mage_Adminhtml_Block_Cms_Wysiwyg_Images_Content_Uploader
 - */
 -?>
--
--<?php echo $this->helper('adminhtml/media_js')->getTranslatorScript() ?>
--
 -<div id="<?php echo $this->getHtmlId() ?>" class="uploader">
 -    <div class="buttons">
 -        <div id="<?php echo $this->getHtmlId() ?>-install-flash" style="display:none">
@@ -5813,7 +4350,7 @@ index 3f9cb77..94a08d6 100644
  //]]>
  </script>
 diff --git app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable.phtml app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable.phtml
-index 0fa8851..1618923 100644
+index b712537..e4ba686 100644
 --- app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable.phtml
 +++ app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable.phtml
 @@ -34,19 +34,16 @@
@@ -5923,7 +4460,7 @@ index 0fa8851..1618923 100644
          this.updateFiles();
      },
 diff --git app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/links.phtml app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/links.phtml
-index caf70a6..6731d62 100644
+index 95fde73..887e92a 100644
 --- app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/links.phtml
 +++ app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/links.phtml
 @@ -28,6 +28,7 @@
@@ -6014,7 +4551,7 @@ index caf70a6..6731d62 100644
  
          linkFile = $('downloadable_link_'+data.id+'_file_type');
 diff --git app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/samples.phtml app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/samples.phtml
-index 3116693..8d2eeb6 100644
+index 7ce066b..09dcf67 100644
 --- app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/samples.phtml
 +++ app/design/adminhtml/default/default/template/downloadable/product/edit/downloadable/samples.phtml
 @@ -27,6 +27,7 @@
@@ -6069,10 +4606,10 @@ index 3116693..8d2eeb6 100644
          sampleUrl.advaiceContainer = 'downloadable_sample_'+data.id+'_container';
          sampleFile = $('downloadable_sample_'+data.id+'_file_type');
 diff --git app/design/adminhtml/default/default/template/media/uploader.phtml app/design/adminhtml/default/default/template/media/uploader.phtml
-index 04ca285..d8db109 100644
+index 074f6c7..6155521 100644
 --- app/design/adminhtml/default/default/template/media/uploader.phtml
 +++ app/design/adminhtml/default/default/template/media/uploader.phtml
-@@ -26,50 +26,30 @@
+@@ -26,48 +26,30 @@
  ?>
  <?php
  /**
@@ -6081,11 +4618,9 @@ index 04ca285..d8db109 100644
   */
  ?>
 -
--<?php echo $this->helper('adminhtml/media_js')->includeScript('lib/flex.js') ?>
--<?php echo $this->helper('adminhtml/media_js')->includeScript('mage/adminhtml/flexuploader.js') ?>
--<?php echo $this->helper('adminhtml/media_js')->includeScript('lib/FABridge.js') ?>
--<?php echo $this->helper('adminhtml/media_js')->getTranslatorScript() ?>
--
+-<?php echo $this->helper('adminhtml/js')->includeScript('lib/flex.js') ?>
+-<?php echo $this->helper('adminhtml/js')->includeScript('mage/adminhtml/flexuploader.js') ?>
+-<?php echo $this->helper('adminhtml/js')->includeScript('lib/FABridge.js') ?>
 -
  <div id="<?php echo $this->getHtmlId() ?>" class="uploader">
 -    <div class="buttons">
@@ -6138,275 +4673,214 @@ index 04ca285..d8db109 100644
 +    })();
  </script>
 +<?php echo $this->getChildHtml('additional_scripts'); ?>
-diff --git app/design/frontend/base/default/template/catalog/product/view.phtml app/design/frontend/base/default/template/catalog/product/view.phtml
-index 4ca4fae..f495089 100644
---- app/design/frontend/base/default/template/catalog/product/view.phtml
-+++ app/design/frontend/base/default/template/catalog/product/view.phtml
-@@ -40,6 +40,7 @@
- <div class="product-view">
-     <div class="product-essential">
-     <form action="<?php echo $this->getSubmitUrl($_product) ?>" method="post" id="product_addtocart_form"<?php if($_product->getOptions()): ?> enctype="multipart/form-data"<?php endif; ?>>
-+        <?php echo $this->getBlockHtml('formkey') ?>
-         <div class="no-display">
-             <input type="hidden" name="product" value="<?php echo $_product->getId() ?>" />
-             <input type="hidden" name="related_product" id="related-products-field" value="" />
-diff --git app/design/frontend/base/default/template/checkout/cart.phtml app/design/frontend/base/default/template/checkout/cart.phtml
-index 0cae4b4..b8ad267 100644
---- app/design/frontend/base/default/template/checkout/cart.phtml
-+++ app/design/frontend/base/default/template/checkout/cart.phtml
-@@ -47,6 +47,7 @@
-     <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
-     <?php echo $this->getChildHtml('form_before') ?>
-     <form action="<?php echo $this->getUrl('checkout/cart/updatePost') ?>" method="post">
-+        <?php echo $this->getBlockHtml('formkey'); ?>
-         <fieldset>
-             <table id="shopping-cart-table" class="data-table cart-table">
-                 <col width="1" />
-diff --git app/design/frontend/base/default/template/checkout/onepage/review/info.phtml app/design/frontend/base/default/template/checkout/onepage/review/info.phtml
-index 808ae43..2bac9fb 100644
---- app/design/frontend/base/default/template/checkout/onepage/review/info.phtml
-+++ app/design/frontend/base/default/template/checkout/onepage/review/info.phtml
-@@ -78,7 +78,7 @@
-     </div>
-     <script type="text/javascript">
-     //<![CDATA[
--        review = new Review('<?php echo $this->getUrl('checkout/onepage/saveOrder') ?>', '<?php echo $this->getUrl('checkout/onepage/success') ?>', $('checkout-agreements'));
-+        review = new Review('<?php echo $this->getUrl('checkout/onepage/saveOrder', array('form_key' => Mage::getSingleton('core/session')->getFormKey())) ?>', '<?php echo $this->getUrl('checkout/onepage/success') ?>', $('checkout-agreements'));
-     //]]>
-     </script>
- </div>
-diff --git app/design/frontend/base/default/template/customer/form/login.phtml app/design/frontend/base/default/template/customer/form/login.phtml
-index 8a50ccb..7b29491 100644
---- app/design/frontend/base/default/template/customer/form/login.phtml
-+++ app/design/frontend/base/default/template/customer/form/login.phtml
-@@ -37,6 +37,7 @@
-     </div>
-     <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
-     <form action="<?php echo $this->getPostActionUrl() ?>" method="post" id="login-form">
-+        <?php echo $this->getBlockHtml('formkey'); ?>
-         <div class="col2-set">
-             <div class="col-1 new-users">
-                 <div class="content">
-diff --git app/design/frontend/base/default/template/email/productalert/price.phtml app/design/frontend/base/default/template/email/productalert/price.phtml
-index 5cef986..181bf8c 100644
---- app/design/frontend/base/default/template/email/productalert/price.phtml
-+++ app/design/frontend/base/default/template/email/productalert/price.phtml
-@@ -32,7 +32,7 @@
-         <td><a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->htmlEscape($_product->getName()) ?>"><img src="<?php echo $_product->getThumbnailUrl() ?>" border="0" align="left" height="75" width="75" alt="<?php echo $this->htmlEscape($_product->getName()) ?>" /></a></td>
-         <td>
-             <p><a href="<?php echo $_product->getProductUrl() ?>"><strong><?php echo $this->htmlEscape($_product->getName()) ?></strong></a></p>
--            <?php if ($shortDescription = $this->htmlEscape($_product->getShortDescription())): ?>
-+            <?php if ($shortDescription = $this->_getFilteredProductShortDescription($product)): ?>
-             <p><small><?php echo $shortDescription ?></small></p>
-             <?php endif; ?>
-             <p><?php if ($_product->getPrice() != $_product->getFinalPrice()): ?>
-diff --git app/design/frontend/base/default/template/email/productalert/stock.phtml app/design/frontend/base/default/template/email/productalert/stock.phtml
-index d628c85..4c0fd2c 100644
---- app/design/frontend/base/default/template/email/productalert/stock.phtml
-+++ app/design/frontend/base/default/template/email/productalert/stock.phtml
-@@ -32,7 +32,7 @@
-         <td><a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->htmlEscape($_product->getName()) ?>"><img src="<?php echo $this->helper('catalog/image')->init($_product, 'thumbnail')->resize(75, 75) ?>" border="0" align="left" height="75" width="75" alt="<?php echo $this->htmlEscape($_product->getName()) ?>" /></a></td>
-         <td>
-             <p><a href="<?php echo $_product->getProductUrl() ?>"><strong><?php echo $this->htmlEscape($_product->getName()) ?></strong></a></p>
--            <?php if ($shortDescription = $this->htmlEscape($_product->getShortDescription())): ?>
-+            <?php if ($shortDescription = $this->_getFilteredProductShortDescription($product)): ?>
-             <p><small><?php echo $shortDescription ?></small></p>
-             <?php endif; ?>
-             <p><?php if ($_product->getPrice() != $_product->getFinalPrice()): ?>
-diff --git app/design/frontend/base/default/template/persistent/customer/form/login.phtml app/design/frontend/base/default/template/persistent/customer/form/login.phtml
-index 3786a88..9c1b563 100644
---- app/design/frontend/base/default/template/persistent/customer/form/login.phtml
-+++ app/design/frontend/base/default/template/persistent/customer/form/login.phtml
-@@ -38,6 +38,7 @@
-     </div>
-     <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
-     <form action="<?php echo $this->getPostActionUrl() ?>" method="post" id="login-form">
-+        <?php echo $this->getBlockHtml('formkey'); ?>
-         <div class="col2-set">
-             <div class="col-1 new-users">
-                 <div class="content">
-diff --git app/design/frontend/base/default/template/review/form.phtml app/design/frontend/base/default/template/review/form.phtml
-index 5534a78..ca008ec 100644
---- app/design/frontend/base/default/template/review/form.phtml
-+++ app/design/frontend/base/default/template/review/form.phtml
-@@ -28,6 +28,7 @@
-     <h2><?php echo $this->__('Write Your Own Review') ?></h2>
-     <?php if ($this->getAllowWriteReviewFlag()): ?>
-     <form action="<?php echo $this->getAction() ?>" method="post" id="review-form">
-+        <?php echo $this->getBlockHtml('formkey'); ?>
-         <fieldset>
-             <?php echo $this->getChildHtml('form_fields_before')?>
-             <h3><?php echo $this->__("You're reviewing:"); ?> <span><?php echo $this->htmlEscape($this->getProductInfo()->getName()) ?></span></h3>
-diff --git app/design/frontend/base/default/template/sales/reorder/sidebar.phtml app/design/frontend/base/default/template/sales/reorder/sidebar.phtml
-index 2fdf176..0c1add2 100644
---- app/design/frontend/base/default/template/sales/reorder/sidebar.phtml
-+++ app/design/frontend/base/default/template/sales/reorder/sidebar.phtml
-@@ -38,6 +38,7 @@
-         <strong><span><?php echo $this->__('My Orders') ?></span></strong>
-     </div>
-     <form method="post" action="<?php echo $this->getFormActionUrl() ?>" id="reorder-validate-detail">
-+        <?php echo $this->getBlockHtml('formkey'); ?>
-         <div class="block-content">
-             <p class="block-subtitle"><?php echo $this->__('Last Ordered Items') ?></p>
-             <ol id="cart-sidebar-reorder">
-diff --git app/design/frontend/base/default/template/tag/customer/view.phtml app/design/frontend/base/default/template/tag/customer/view.phtml
-index 9ad6090..133f7bf 100644
---- app/design/frontend/base/default/template/tag/customer/view.phtml
-+++ app/design/frontend/base/default/template/tag/customer/view.phtml
-@@ -52,7 +52,9 @@
-             </td>
-             <td>
-                 <?php if($_product->isSaleable()): ?>
--                    <button type="button" title="<?php echo $this->__('Add to Cart') ?>" class="button btn-cart" onclick="setLocation('<?php echo $this->getUrl('checkout/cart/add',array('product'=>$_product->getId())) ?>')"><span><span><?php echo $this->__('Add to Cart') ?></span></span></button>
-+                    <?php $params[Mage_Core_Model_Url::FORM_KEY] = Mage::getSingleton('core/session')->getFormKey() ?>
-+                    <?php $params['product'] = $_product->getId(); ?>
-+                    <button type="button" title="<?php echo $this->__('Add to Cart') ?>" class="button btn-cart" onclick="setLocation('<?php echo $this->getUrl('checkout/cart/add', $params) ?>')"><span><span><?php echo $this->__('Add to Cart') ?></span></span></button>
-                 <?php endif; ?>
-                 <?php if ($this->helper('wishlist')->isAllow()) : ?>
-                 <ul class="add-to-links">
-diff --git app/design/frontend/base/default/template/wishlist/view.phtml app/design/frontend/base/default/template/wishlist/view.phtml
-index 31ec343..c071d1d 100644
---- app/design/frontend/base/default/template/wishlist/view.phtml
-+++ app/design/frontend/base/default/template/wishlist/view.phtml
-@@ -107,8 +107,17 @@
-     <?php else: ?>
-         <p><?php echo $this->__('You have no items in your wishlist.') ?></p>
-     <?php endif ?>
+diff --git app/design/adminhtml/default/default/template/xmlconnect/edit/tab/design.phtml app/design/adminhtml/default/default/template/xmlconnect/edit/tab/design.phtml
+index 980f6fe..249bb49 100644
+--- app/design/adminhtml/default/default/template/xmlconnect/edit/tab/design.phtml
++++ app/design/adminhtml/default/default/template/xmlconnect/edit/tab/design.phtml
+@@ -24,19 +24,22 @@
+  * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+  */
+ ?>
++<?php
++/**
++ * @var $this Mage_XmlConnect_Block_Adminhtml_Mobile_Edit_Tab_Design
++ */
++?>
+ <script type="text/javascript">
+ // <![CDATA[
+ var imageTemplate = '<input type="hidden" name="{{file_field}}[image][{{id}}][image_id]" value="{{image_id}}" />'+
+         '<div class="banner-image">'+
+-            '<div class="row">'+
+-                '<div id="{{file_field}}_{{id}}_file" class="uploader">'+
++            '<div class="row a-right">' +
++                '<div class="flex">' +
++                '<?php echo $this->getBrowseButtonHtml() ?>'+
++                '</div>' +
++                '<div id="{{file_field}}_{{id}}_file" class="uploader a-left">'+
+                     '<div id="{{file_field}}_{{id}}_file-old" class="file-row-info"><div id="{{file_field}}_preview_{{id}}" style="background:url({{thumbnail}}) no-repeat center;" class="image-placeholder"></div></div>'+
+                     '<div id="{{file_field}}_{{id}}_file-new" class="file-row-info new-file"></div>'+
+-                    '<div class="buttons">'+
+-                        '<div id="{{file_field}}_{{id}}_file-install-flash" style="display:none">'+
+-                            '<?php echo $this->jsQuoteEscape(Mage::helper('media')->__('This content requires last version of Adobe Flash Player. <a href="%s">Get Flash</a>', 'http://www.adobe.com/go/getflash/')) ?>'+
+-                        '</div>'+
+-                    '</div>'+
+                     '<div class="clear"></div>'+
+                 '</div>'+
+             '</div>'+
+@@ -66,6 +69,16 @@ var imageItems = {
+     imageActionTruncateLenght: 35,
+     add : function(config) {
+         try {
++            if(Object.isString(config)) {
++                config = config.evalJSON();
++            }
++            config.file_field = config.uploaderConfig.fileParameterName;
++            config.file_save = config.miscConfig.file_save;
++            config.thumbnail = config.miscConfig.thumbnail;
++            config.image_id = config.miscConfig.image_id;
++            config.image_action_data = config.miscConfig.image_action_data;
++            config.image_count = config.miscConfig.image_count;
 +
-+    <form id="wishlist-allcart-form" action="<?php echo $this->getUrl('*/*/allcart') ?>" method="post">
-+        <?php echo $this->getBlockHtml('formkey') ?>
-+        <div class="no-display">
-+            <input type="hidden" name="qty" id="qty" value="" />
-+        </div>
-+    </form>
-     <script type="text/javascript">
-     //<![CDATA[
-+    var wishlistAllCartForm = new Validation($('wishlist-allcart-form'));
-+
-     function confirmRemoveWishlistItem() {
-         return confirm('<?php echo $this->__('Are you sure you want to remove this product from your wishlist?') ?>');
-     }
-@@ -135,16 +144,22 @@
-         setLocation(url);
-     }
+             var isUploadedImage = true, uploaderClass = '';
+             this.template = new Template(this.templateText, this.templateSyntax);
  
--    function addAllWItemsToCart() {
--        var url = '<?php echo $this->getUrl('*/*/allcart') ?>';
--        var separator = (url.indexOf('?') >= 0) ? '&' : '?';
-+    function calculateQty() {
-+        var itemQtys = new Array();
-         $$('#wishlist-view-form .qty').each(
-             function (input, index) {
--                url += separator + input.name + '=' + encodeURIComponent(input.value);
--                separator = '&';
-+                var idxStr = input.name;
-+                var idx = idxStr.replace( /[^\d.]/g, '' );
-+                itemQtys[idx] = input.value;
-             }
-         );
--        setLocation(url);
-+
-+        $$('#qty')[0].value = JSON.stringify(itemQtys);
-+    }
-+
-+    function addAllWItemsToCart() {
-+        calculateQty();
-+        wishlistAllCartForm.form.submit();
-     }
-     //]]>
-     </script>
-diff --git app/design/frontend/default/iphone/template/checkout/cart.phtml app/design/frontend/default/iphone/template/checkout/cart.phtml
-index 2a4fa1e..af833bd 100644
---- app/design/frontend/default/iphone/template/checkout/cart.phtml
-+++ app/design/frontend/default/iphone/template/checkout/cart.phtml
-@@ -38,6 +38,7 @@
-     <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
-     <?php echo $this->getChildHtml('form_before') ?>
-     <form action="<?php echo $this->getUrl('checkout/cart/updatePost') ?>" method="post">
-+        <?php echo $this->getBlockHtml('formkey') ?>
-         <fieldset>
-             <table id="shopping-cart-table" class="data-table cart-table">
-             <?php if ($this->helper('tax')->displayCartPriceExclTax() || $this->helper('tax')->displayCartBothPrices()): ?>
-diff --git app/design/frontend/default/iphone/template/customer/form/login.phtml app/design/frontend/default/iphone/template/customer/form/login.phtml
-index 199270c..53d3dda 100644
---- app/design/frontend/default/iphone/template/customer/form/login.phtml
-+++ app/design/frontend/default/iphone/template/customer/form/login.phtml
-@@ -34,6 +34,7 @@
- <div class="account-login">
-     <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
-     <form action="<?php echo $this->getPostActionUrl() ?>" method="post" id="login-form">
-+        <?php echo $this->getBlockHtml('formkey') ?>
-         <div class="registered-users">
-             <h1><?php echo $this->__('Registered Customers') ?></h1>
-             <ul class="form-list">
-diff --git app/design/frontend/default/iphone/template/persistent/customer/form/login.phtml app/design/frontend/default/iphone/template/persistent/customer/form/login.phtml
-index ebbf0d8..cc59256 100644
---- app/design/frontend/default/iphone/template/persistent/customer/form/login.phtml
-+++ app/design/frontend/default/iphone/template/persistent/customer/form/login.phtml
-@@ -35,6 +35,7 @@
- <div class="account-login">
-     <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
-     <form action="<?php echo $this->getPostActionUrl() ?>" method="post" id="login-form">
-+        <?php echo $this->getBlockHtml('formkey') ?>
-         <div class="registered-users">
-             <h1><?php echo $this->__('Registered Customers') ?></h1>
-             <ul class="form-list">
-diff --git app/design/frontend/default/iphone/template/wishlist/view.phtml app/design/frontend/default/iphone/template/wishlist/view.phtml
-index 10e10d8..81e7a74 100644
---- app/design/frontend/default/iphone/template/wishlist/view.phtml
-+++ app/design/frontend/default/iphone/template/wishlist/view.phtml
-@@ -96,8 +96,17 @@
-     <?php else: ?>
-         <p><?php echo $this->__('You have no items in your wishlist.') ?></p>
-     <?php endif ?>
-+
-+    <form id="wishlist-allcart-form" action="<?php echo $this->getUrl('*/*/allcart') ?>" method="post">
-+        <?php echo $this->getBlockHtml('formkey') ?>
-+        <div class="no-display">
-+            <input type="hidden" name="qty" id="qty" value="" />
-+        </div>
-+    </form>
-     <script type="text/javascript">
-     //<![CDATA[
-+    var wishlistAllCartForm = new Validation($('wishlist-allcart-form'));
-+
-     function confirmRemoveWishlistItem() {
-         return confirm('<?php echo $this->__('Are you sure you want to remove this product from your wishlist?') ?>');
-     }
-@@ -124,16 +133,22 @@
-         setLocation(url);
-     }
+@@ -89,7 +102,11 @@ var imageItems = {
+             Element.insert(this.ulImages.down('li', config.id), {'bottom' : this.template.evaluate(config)});
+             var container = $(config.file_field + '_' + config.id + '_file').up('li');
  
--    function addAllWItemsToCart() {
--        var url = '<?php echo $this->getUrl('*/*/allcart') ?>';
--        var separator = (url.indexOf('?') >= 0) ? '&' : '?';
-+    function calculateQty() {
-+        var itemQtys = new Array();
-         $$('#wishlist-view-form .qty').each(
-             function (input, index) {
--                url += separator + input.name + '=' + encodeURIComponent(input.value);
--                separator = '&';
-+                var idxStr = input.name;
-+                var idx = idxStr.replace( /[^\d.]/g, '' );
-+                itemQtys[idx] = input.value;
+-            if (config.show_uploader == 1) {
++            if (config.image_id != 'uploader') {
++                container.down('.flex').remove();
++                imageItems.addEditButton(container, config);
++                imageItems.addDeleteButton(container, config);
++            } else {
+                 config.file_save = [];
+ 
+                 new Downloadable.FileUploader(
+@@ -102,11 +119,6 @@ var imageItems = {
+                     config
+                 );
              }
+-
+-            if (config.image_id != 'uploader') {
+-                imageItems.addEditButton(container, config);
+-                imageItems.addDeleteButton(container, config);
+-            }
+         } catch (e) {
+             alert(e.message);
+         }
+@@ -209,7 +221,10 @@ var imageItems = {
+     },
+     reloadImages : function(image_list) {
+         try {
+-            var imageType = image_list[0].file_field;
++            image_list = image_list.map(function (item) {
++                return Object.isString(item) ? item.evalJSON(): item;
++            });
++            var imageType = image_list[0].uploaderConfig.fileParameterName;
+             Downloadable.unsetUploaderByType(imageType);
+             var currentContainerId = imageType;
+             var currentContainer = $(currentContainerId);
+@@ -283,28 +298,18 @@ var imageItems = {
+ 
+ jscolor.dir = '<?php echo $this->getJsUrl(); ?>jscolor/';
+ 
+-var maxUploadFileSizeInBytes = <?php echo $this->getChild('media_uploader')->getDataMaxSizeInBytes() ?>;
+-var maxUploadFileSize = '<?php echo $this->getChild('media_uploader')->getDataMaxSize() ?>';
+-
+ var uploaderTemplate = '<div class="no-display" id="[[idName]]-template">' +
+-                            '<div id="{{id}}" class="file-row file-row-narrow">' +
++                            '<div id="{{id}}-container" class="file-row file-row-narrow">' +
+                                 '<span class="file-info">' +
+                                     '<span class="file-info-name">{{name}}</span>' + ' ' +
+-                                    '<span class="file-info-size">({{size}})</span>' +
++                                    '<span class="file-info-size">{{size}}</span>' +
+                                 '</span>' +
+                                 '<span class="progress-text"></span>' +
+                                 '<div class="clear"></div>' +
+                             '</div>' +
+-                        '</div>' +
+-                        '<div class="no-display" id="[[idName]]-template-progress">' +
+-                            '{{percent}}% {{uploaded}} / {{total}}' +
+                         '</div>';
+ 
+-var fileListTemplate = '<div style="background:url({{file}}) no-repeat center;" class="image-placeholder"></div>' +
+-                        '<span class="file-info">' +
+-                            '<span class="file-info-name">{{name}}</span>' + ' ' +
+-                            '<span class="file-info-size">({{size}})</span>' +
+-                        '</span>';
++var fileListTemplate = '<div style="background:url({{file}}) no-repeat center;" class="image-placeholder"></div>';
+ 
+ var Downloadable = {
+     uploaderObj : $H({}),
+@@ -401,13 +406,17 @@ Downloadable.FileUploader.prototype = {
+         if ($(this.idName + '_save')) {
+             $(this.idName + '_save').value = this.fileValue.toJSON ? this.fileValue.toJSON() : Object.toJSON(this.fileValue);
+         }
++
++        this.config = Object.toJSON(this.config).replace(
++            new RegExp(config.elementIds.idToReplace, 'g'),
++            config.file_field + '_'+ config.id + '_file').evalJSON();
++
+         Downloadable.setUploaderObj(
+             this.type,
+             this.key,
+-            new Flex.Uploader(this.idName, '<?php echo $this->getSkinUrl('media/uploaderSingle.swf') ?>', this.config)
++            new Uploader(this.config)
          );
--        setLocation(url);
-+
-+        $$('#qty')[0].value = JSON.stringify(itemQtys);
-+    }
-+
-+    function addAllWItemsToCart() {
-+        calculateQty();
-+        wishlistAllCartForm.form.submit();
-     }
-     //]]>
-     </script>
+         new Downloadable.FileList(this.idName, Downloadable.getUploaderObj(type, key), this.config);
+-
+         if (varienGlobalEvents) {
+             varienGlobalEvents.attachEventHandler('tabChangeBefore', Downloadable.getUploaderObj(type, key).onContainerHideBefore);
+         }
+@@ -427,35 +436,34 @@ Downloadable.FileList.prototype = {
+         this.containerId  = containerId,
+         this.container = $(this.containerId);
+         this.uploader = uploader;
+-        this.uploader.onFilesComplete = this.handleUploadComplete.bind(this);
++        this.uploader.uploader.on('filesSubmitted', this.handleFileSelect.bind(this));
++        document.on('uploader:fileSuccess', function(event) {
++            var memo = event.memo;
++            if(this._checkCurrentContainer(memo.containerId)) {
++                this.handleUploadComplete([{response: memo.response}]);
++            }
++        }.bind(this));
+         this.file = this.getElement('save').value.evalJSON();
+         this.listTemplate = new Template(this.fileListTemplate, this.templatePattern);
+         this.updateFiles();
+-        this.uploader.handleSelect = this.handleFileSelect.bind(this);
+-        this.uploader.onContainerHideBefore = this.handleContainerHideBefore.bind(this);
+         this.uploader.config = config;
+-    },
+-    handleContainerHideBefore: function(container) {
+-        if (container && Element.descendantOf(this.uploader.container, container) && !this.uploader.checkAllComplete()) {
+-            if (!confirm('<?php echo $this->__('There are files that were selected but not uploaded yet. After switching to another tab your selections may be lost. Do you wish to continue ?');?>')) {
+-                return 'cannotchange';
+-            } else {
++        this.onContainerHideBefore = this.uploader.onContainerHideBefore.bind(
++            this.uploader,
++            function () {
+                 return 'change';
+-            }
+-        }
++            });
++    },
++    _checkCurrentContainer: function (child) {
++        return $(this.containerId).down('#' + child);
+     },
+     handleFileSelect: function(event) {
+         try {
+-            this.uploader.files = event.getData().files;
+-            this.uploader.checkFileSize();
+-            this.updateFiles();
+-            if (!hasTooBigFiles) {
+-                var uploaderList = $(this.uploader.flexContainerId);
+-                for (i = 0; i < uploaderList.length; i++) {
+-                    uploaderList[i].setStyle({visibility: 'hidden'});
+-                }
+-                Downloadable.massUploadByType(this.uploader.config.file_field);
++            if(this.uploader.uploader.files.length) {
++                $(this.containerId + '-old').hide();
++                this.uploader.elements.browse.invoke('setStyle', {'visibility': 'hidden'});
+             }
++            this.updateFiles();
++            Downloadable.massUploadByType(this.uploader.config.file_field);
+         } catch (e) {
+             alert(e.message);
+         }
+@@ -485,7 +493,6 @@ Downloadable.FileList.prototype = {
+                 newFile.size = response.size;
+                 newFile.status = 'new';
+                 this.file[0] = newFile;
+-                this.uploader.removeFile(item.id);
+                 imageItems.reloadImages(response.image_list);
+             }.bind(this));
+             this.updateFiles();
 diff --git app/etc/modules/Mage_All.xml app/etc/modules/Mage_All.xml
-index ca610ae..f724a77 100644
+index b3e1ef7..c619880 100644
 --- app/etc/modules/Mage_All.xml
 +++ app/etc/modules/Mage_All.xml
-@@ -274,7 +274,7 @@
+@@ -275,7 +275,7 @@
              <active>true</active>
              <codePool>core</codePool>
              <depends>
@@ -6415,7 +4889,7 @@ index ca610ae..f724a77 100644
              </depends>
          </Mage_Cms>
          <Mage_Reports>
-@@ -396,5 +396,12 @@
+@@ -397,5 +397,12 @@
                  <Mage_Core/>
              </depends>
          </Mage_Index>
@@ -6451,120 +4925,21 @@ index 0000000..c246b24
 +"Uploading...","Uploading..."
 +"Complete","Complete"
 \ No newline at end of file
-diff --git downloader/Maged/Controller.php downloader/Maged/Controller.php
-index 11d6f0e..c03ab49b 100755
---- downloader/Maged/Controller.php
-+++ downloader/Maged/Controller.php
-@@ -367,6 +367,11 @@ final class Maged_Controller
-      */
-     public function connectInstallPackageUploadAction()
-     {
-+        if (!$this->_validateFormKey()) {
-+            echo "No file was uploaded";
-+            return;
-+        }
-+
-         if (!$_FILES) {
-             echo "No file was uploaded";
-             return;
-@@ -974,4 +979,27 @@ final class Maged_Controller
-             'number'    => '',
-         );
-     }
-+
-+    /**
-+     * Validate Form Key
-+     *
-+     * @return bool
-+     */
-+    protected function _validateFormKey()
-+    {
-+        if (!($formKey = $_REQUEST['form_key']) || $formKey != $this->session()->getFormKey()) {
-+            return false;
-+        }
-+        return true;
-+    }
-+
-+    /**
-+     * Retrieve Session Form Key
-+     *
-+     * @return string
-+     */
-+    public function getFormKey()
-+    {
-+        return $this->session()->getFormKey();
-+    }
- }
-diff --git downloader/Maged/Model/Session.php downloader/Maged/Model/Session.php
-index 138f6a3..26ab58d 100644
---- downloader/Maged/Model/Session.php
-+++ downloader/Maged/Model/Session.php
-@@ -221,4 +221,17 @@ class Maged_Model_Session extends Maged_Model
-         }
-         return Mage::getSingleton('adminhtml/url')->getUrl('adminhtml');
-     }
-+
-+    /**
-+     * Retrieve Session Form Key
-+     *
-+     * @return string A 16 bit unique key for forms
-+     */
-+    public function getFormKey()
-+    {
-+        if (!$this->get('_form_key')) {
-+            $this->set('_form_key', Mage::helper('core')->getRandomString(16));
-+        }
-+        return $this->get('_form_key');
-+    }
- }
-diff --git downloader/Maged/View.php downloader/Maged/View.php
-index a2c8584..175fa6f 100755
---- downloader/Maged/View.php
-+++ downloader/Maged/View.php
-@@ -154,6 +154,16 @@ class Maged_View
-     }
- 
-     /**
-+     * Retrieve Session Form Key
-+     *
-+     * @return string
-+     */
-+    public function getFormKey()
-+    {
-+        return $this->controller()->getFormKey();
-+    }
-+
-+    /**
-      * Escape html entities
-      *
-      * @param   mixed $data
 diff --git downloader/lib/Mage/HTTP/Client/Curl.php downloader/lib/Mage/HTTP/Client/Curl.php
-index 0840f18..9deca0d 100644
+index 17a60a9..d6abcb4 100644
 --- downloader/lib/Mage/HTTP/Client/Curl.php
 +++ downloader/lib/Mage/HTTP/Client/Curl.php
-@@ -378,8 +378,8 @@ implements Mage_HTTP_IClient
-         }
- 
-         $this->curlOption(CURLOPT_URL, $uri);
--        $this->curlOption(CURLOPT_SSL_VERIFYPEER, FALSE);
+@@ -372,8 +372,8 @@ implements Mage_HTTP_IClient
+         $uriModified = $this->getSecureRequest($uri, $isAuthorizationRequired);
+         $this->_ch = curl_init();
+         $this->curlOption(CURLOPT_URL, $uriModified);
+-        $this->curlOption(CURLOPT_SSL_VERIFYPEER, false);
 -        $this->curlOption(CURLOPT_SSL_VERIFYHOST, 2);
 +        $this->curlOption(CURLOPT_SSL_VERIFYPEER, true);
 +        $this->curlOption(CURLOPT_SSL_VERIFYHOST, 'TLSv1');
+         $this->getCurlMethodSettings($method, $params, $isAuthorizationRequired);
  
-         // force method to POST if secured
-         if ($isAuthorizationRequired) {
-diff --git downloader/template/connect/packages.phtml downloader/template/connect/packages.phtml
-index 459feb0..40c31ce 100644
---- downloader/template/connect/packages.phtml
-+++ downloader/template/connect/packages.phtml
-@@ -101,6 +101,7 @@
-     <h4>Direct package file upload</h4>
- </div>
- <form action="<?php echo $this->url('connectInstallPackageUpload')?>" method="post" target="connect_iframe" onsubmit="onSubmit(this)" enctype="multipart/form-data">
-+    <input name="form_key" type="hidden" value="<?php echo $this->getFormKey() ?>" />
-     <ul class="bare-list">
-         <li><span class="step-count">1</span> &nbsp; Download or build package file.</li>
-         <li>
+         if(count($this->_headers)) {
 diff --git js/lib/uploader/flow.min.js js/lib/uploader/flow.min.js
 new file mode 100644
 index 0000000..34b888e
@@ -7029,7 +5404,7 @@ index 0000000..4519a81
 +  }
 +})(window.Flow, window, document);
 diff --git js/mage/adminhtml/product.js js/mage/adminhtml/product.js
-index e6aae5f..07f3041 100644
+index e38a2c3..e1612de 100644
 --- js/mage/adminhtml/product.js
 +++ js/mage/adminhtml/product.js
 @@ -34,18 +34,18 @@ Product.Gallery.prototype = {
@@ -7592,8 +5967,121 @@ index 0000000..483b2af
 +        }
 +    });
 +})(fustyFlowFactory, window, document);
+diff --git lib/Unserialize/Parser.php lib/Unserialize/Parser.php
+index 423902a..2c01684 100644
+--- lib/Unserialize/Parser.php
++++ lib/Unserialize/Parser.php
+@@ -34,6 +34,7 @@ class Unserialize_Parser
+     const TYPE_DOUBLE = 'd';
+     const TYPE_ARRAY = 'a';
+     const TYPE_BOOL = 'b';
++    const TYPE_NULL = 'N';
+ 
+     const SYMBOL_QUOTE = '"';
+     const SYMBOL_SEMICOLON = ';';
+diff --git lib/Unserialize/Reader/Arr.php lib/Unserialize/Reader/Arr.php
+index caa979e..cd37804 100644
+--- lib/Unserialize/Reader/Arr.php
++++ lib/Unserialize/Reader/Arr.php
+@@ -101,7 +101,10 @@ class Unserialize_Reader_Arr
+         if ($this->_status == self::READING_VALUE) {
+             $value = $this->_reader->read($char, $prevChar);
+             if (!is_null($value)) {
+-                $this->_result[$this->_reader->key] = $value;
++                $this->_result[$this->_reader->key] =
++                    ($value == Unserialize_Reader_Null::NULL_VALUE && $prevChar == Unserialize_Parser::TYPE_NULL)
++                        ? null
++                        : $value;
+                 if (count($this->_result) < $this->_length) {
+                     $this->_reader = new Unserialize_Reader_ArrKey();
+                     $this->_status = self::READING_KEY;
+diff --git lib/Unserialize/Reader/ArrValue.php lib/Unserialize/Reader/ArrValue.php
+index d2a4937..c6c0221 100644
+--- lib/Unserialize/Reader/ArrValue.php
++++ lib/Unserialize/Reader/ArrValue.php
+@@ -84,6 +84,10 @@ class Unserialize_Reader_ArrValue
+                     $this->_reader = new Unserialize_Reader_Dbl();
+                     $this->_status = self::READING_VALUE;
+                     break;
++                case Unserialize_Parser::TYPE_NULL:
++                    $this->_reader = new Unserialize_Reader_Null();
++                    $this->_status = self::READING_VALUE;
++                    break;
+                 default:
+                     throw new Exception('Unsupported data type ' . $char);
+             }
+diff --git lib/Unserialize/Reader/Null.php lib/Unserialize/Reader/Null.php
+new file mode 100644
+index 0000000..93c7e0b
+--- /dev/null
++++ lib/Unserialize/Reader/Null.php
+@@ -0,0 +1,64 @@
++<?php
++/**
++ * Magento
++ *
++ * NOTICE OF LICENSE
++ *
++ * This source file is subject to the Open Software License (OSL 3.0)
++ * that is bundled with this package in the file LICENSE.txt.
++ * It is also available through the world-wide-web at this URL:
++ * http://opensource.org/licenses/osl-3.0.php
++ * If you did not receive a copy of the license and are unable to
++ * obtain it through the world-wide-web, please send an email
++ * to license@magento.com so we can send you a copy immediately.
++ *
++ * DISCLAIMER
++ *
++ * Do not edit or add to this file if you wish to upgrade Magento to newer
++ * versions in the future. If you wish to customize Magento for your
++ * needs please refer to http://www.magento.com for more information.
++ *
++ * @category    Unserialize
++ * @package     Unserialize_Reader_Null
++ * @copyright  Copyright (c) 2006-2016 X.commerce, Inc. and affiliates (http://www.magento.com)
++ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
++ */
++
++/**
++ * Class Unserialize_Reader_Null
++ */
++class Unserialize_Reader_Null
++{
++    /**
++     * @var int
++     */
++    protected $_status;
++
++    /**
++     * @var string
++     */
++    protected $_value;
++
++    const NULL_VALUE = 'null';
++
++    const READING_VALUE = 1;
++
++    /**
++     * @param string $char
++     * @param string $prevChar
++     * @return string|null
++     */
++    public function read($char, $prevChar)
++    {
++        if ($prevChar == Unserialize_Parser::SYMBOL_SEMICOLON) {
++            $this->_value = self::NULL_VALUE;
++            $this->_status = self::READING_VALUE;
++            return null;
++        }
++
++        if ($this->_status == self::READING_VALUE && $char == Unserialize_Parser::SYMBOL_SEMICOLON) {
++            return $this->_value;
++        }
++        return null;
++    }
++}
 diff --git skin/adminhtml/default/default/boxes.css skin/adminhtml/default/default/boxes.css
-index 22478d0..ce7cb41 100644
+index 3073997..59d3625 100644
 --- skin/adminhtml/default/default/boxes.css
 +++ skin/adminhtml/default/default/boxes.css
 @@ -76,7 +76,7 @@
@@ -7605,7 +6093,7 @@ index 22478d0..ce7cb41 100644
      position:absolute;
      color:#d85909;
      font-size:1.1em;
-@@ -1258,8 +1258,6 @@ ul.super-product-attributes { padding-left:15px; }
+@@ -1394,8 +1394,6 @@ ul.super-product-attributes { padding-left:15px; }
  .uploader .file-row-info .file-info-name  { font-weight:bold; }
  .uploader .file-row .progress-text { float:right; font-weight:bold; }
  .uploader .file-row .delete-button { float:right; }
@@ -9146,3 +7634,15 @@ index 1d3a0bb..0000000
 -â~àp#ı]‚àzó•êtMZK‹l(˘ñ†Ô\ªÄ≈†…≈l∞∑Å∫ã∏ÚçóâΩ ç
 -◊û¿ß:º[≠¡Cù¬|CX'0,ÿ|]3oécáíÈ÷çnØct˝Î,9ŸÄ˜ı` >‘’ÃO6≤Î*?ﬁz”ÉúNäó~G‹t1ú∂[Ôà˛l»:Iˇá≠3◊‘p∂õ>M?.RoÚÊ◊æ’ü|âKÌrÈ®Û<é:ØîÇo#¯{›}hˆ∂∞≠∑°üÈpuÂD)ü9Éÿ´%¿xQü3‡LﬁE¡~”¥¨⁄îH]Xù]*∫ó|fïp˜àÃ3bR⁄—ëOû*ö≤˘:}ü•±íDP ⁄¥ÃRÖ¡õï˝ºÿÄ««IMYÙZŸÜ`Ì@∫ ®˛-˙øX⁄>%‘WR§ßEÎúb˙<ç§Áqîó¸ÊâµMéa√S¢ô-èÀBõ<ÄgË¶-4ôY†]R†Ü ÒüÚÕQõÍ’ú∫S¶í™§àYiÏ¸§#„IQHû,…XHû3‘Ù)ö∏ùËàø‘#¡`Ëyµ‰ Ω+o∏›Ä9ÍY1ï™á9W´l¯jz“qsdä‹y√Ÿ∂ΩÖ]“RT)O›ÓÉ∞ÂØnEuúÅÃCÓﬁˆ°ÁƒÅúÉEã¬≥ÇñÉÙ;à_Å¯¸Jü—k!Ók«¨væûk’Ìl†}JUk[‚E]ç´-myºƒ∏¶˚•á4À"UOû*'}Z‰ÌVÎ¥ Ÿ'ìÏ∏|¶„9ÍW:]ÈsT*ÁD™jC:⁄äI“F*ÄfRHæq}NòÁ(t¯Cº´E,bQM5>«‡hZÙp÷3¬dB û†!Dâ¯¢|˘ÚŒ (ˆt^pe≠∆=L∏‡=Lÿém@ã“PÛœä¢®äOôı˜sÓo¸è˚öπ/ÛÛŸ˜œx‡°{gœö5˚ŸŸ˜ÃjhlúuWc„Ïg5˛gn÷/~9´ÒﬂˇÌæ∆Yå1Îásí»≥n˚õÔ‹ˆ›;nªıˆÔ*4ƒ*ˇà2«÷
 \ No newline at end of file
+diff --git skin/adminhtml/default/default/xmlconnect/boxes.css skin/adminhtml/default/default/xmlconnect/boxes.css
+index 0a4cf30..d46a85d 100644
+--- skin/adminhtml/default/default/xmlconnect/boxes.css
++++ skin/adminhtml/default/default/xmlconnect/boxes.css
+@@ -88,6 +88,7 @@
+ .image-item-upload .uploader .progress,
+ .image-item-upload .uploader .complete,
+ .image-item-upload .uploader .error { display:block; height:100px; text-align:center; }
++.image-item-upload .uploader .progress,
+ .image-item-upload .uploader .complete { text-align:center; line-height:95px; }
+ .image-item-upload .uploader .file-row-info img { vertical-align:bottom; }
+ .image-item-upload .uploader .file-row-narrow { margin:0; width:140px; }

@@ -51,7 +51,7 @@ fi;
 
 # Download the right patch.
 if [ $filename != "no-version" ]; then
-	patch_file="PATCH_SUPEE-8788_CE_"$filename"_v1.sh"
+	patch_file="PATCH_SUPEE-8788_CE_"$filename"_v2.sh"
 	echo "Download patch: $patch_file"
 	wget --no-check-certificate --quiet - https://raw.githubusercontent.com/rikwillems/SUPEE-8788/master/$patch_file
 else 
