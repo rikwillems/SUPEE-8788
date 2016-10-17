@@ -15,15 +15,15 @@ The SUPEE-8788 patch addresses these security issues in earlier Magento versions
 
 The new v2 patch addresses two issues:
 
-Removes compatibility issues with SUPEE-1533 and SUPEE-3941 security patches experienced by merchants using Community Edition 1.8 and earlier releases.
-Resolves issues with some 3rd party payment methods during checkout.
+- Removes compatibility issues with SUPEE-1533 and SUPEE-3941 security patches experienced by merchants using Community Edition 1.8 and earlier releases.
+- Resolves issues with some 3rd party payment methods during checkout.
 
 # Installation process:
 
-Revert SUPEE-8788 if you have already installed it.
-Revert SUPEE-1533 if you have already installed it.
-Deploy SUPEE-3941 if it hasn’t already been installed.
-Install the new SUPEE-8788 v2 patch. This patch includes SUPEE-1533, so you don’t need to worry about re-installing it.
+- Revert SUPEE-8788 if you have already installed it.
+- Revert SUPEE-1533 if you have already installed it.
+- Deploy SUPEE-3941 if it hasn’t already been installed.
+- Install the new SUPEE-8788 v2 patch. This patch includes SUPEE-1533, so you don’t need to worry about re-installing it.
 
 ## Usage
 
